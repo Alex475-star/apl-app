@@ -2881,15 +2881,12 @@ function closeCustomerView(){
 function renderCustomerView(doc){
   const body=document.getElementById('cust-body');
   const c=S.co;
-
-  // Set logo
   const logoEl=document.getElementById('cust-logo-display');
   if(logoEl){
     const logoSrc=(document.getElementById('apl-logo-img')||{src:''}).src;
     if(logoSrc&&logoSrc.length>10){logoEl.src=logoSrc;logoEl.style.display='block';}
     else{logoEl.style.display='none';}
   }
-
   const sub=tot(doc.lineItems);
   const markup=calcMarkup(doc);
   const discount=calcDiscount(doc);
@@ -2897,119 +2894,102 @@ function renderCustomerView(doc){
   const grand=calcGrandTotal(doc);
   const deposit=calcDeposit(doc);
   const expired=doc.expiryDate&&new Date(doc.expiryDate)<new Date();
-
+  const logoSrc=(document.getElementById('apl-logo-img')||{src:''}).src;
   if(doc.signature){
-    body.innerHTML=`<div class="cust-success">
-      <div class="cust-success-icon">✅</div>
-      <div style="font-size:22px;font-weight:700;color:#276749;margin-bottom:8px;">Quote Accepted</div>
-      <div style="font-size:14px;color:#555;margin-bottom:4px;">Thank you, ${doc.clientName}.</div>
-      <div style="font-size:13px;color:#888;">We'll be in touch shortly to arrange a start date.</div>
-      <div style="margin-top:20px;padding:12px 16px;background:#f0faf4;border-radius:8px;border:1px solid #a7f3d0;font-size:12px;color:#276749;">
-        Signed on ${doc.signedAt?new Date(doc.signedAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):''}<br>
-        Quote total: <strong>${fmt(grand)}</strong>
+    body.innerHTML=`<div style="text-align:center;padding:60px 20px;background:#e8e8e8;min-height:100%;">
+      <div style="background:#fff;max-width:420px;margin:0 auto;padding:40px 28px;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,0.12);">
+        <div style="font-size:56px;margin-bottom:16px;">✅</div>
+        <div style="font-size:22px;font-weight:700;color:#276749;margin-bottom:8px;">Quote Accepted</div>
+        <div style="font-size:14px;color:#555;margin-bottom:4px;">Thank you, ${doc.clientName}.</div>
+        <div style="font-size:13px;color:#888;">We'll be in touch shortly to arrange a start date.</div>
+        <div style="margin-top:20px;padding:14px;background:#f0faf4;border-radius:8px;border:1px solid #a7f3d0;font-size:13px;color:#276749;">
+          Signed on ${doc.signedAt?new Date(doc.signedAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):''}<br>
+          Quote total: <strong>${fmt(grand)}</strong>
+        </div>
       </div>
     </div>`;
     return;
   }
-
   body.innerHTML=`
-    <!-- Header card with quote info and prepared for/from -->
-    <div class="cust-card">
-      <div class="cust-title">Your Quote</div>
-      <div class="cust-ref">#${doc.ref} · Valid until ${doc.expiryDate||'—'}</div>
-      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px;background:#f9f9f7;border-radius:8px;font-size:13px;">
-        <div>
-          <div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Prepared For</div>
-          <div style="font-weight:700;color:#111;font-size:14px;">${doc.clientName}</div>
-          <div style="color:#666;font-size:12px;margin-top:2px;line-height:1.5;">${(doc.serviceAddress||doc.address||'').replace(/,/g,'<br>')}</div>
-          ${doc.mobile||doc.phone?`<div style="color:#666;font-size:12px;">${doc.mobile||doc.phone}</div>`:''}
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">From</div>
-          <div style="font-weight:700;color:#111;font-size:14px;">${c.companyName}</div>
-          <div style="color:#666;font-size:12px;margin-top:2px;">${c.phone}</div>
-          <div style="color:#666;font-size:12px;">${c.email}</div>
-        </div>
+  <div style="background:#e8e8e8;min-height:100%;padding:16px 8px 40px;">
+  <div style="background:#fff;max-width:620px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#222;box-shadow:0 2px 16px rgba(0,0,0,0.15);line-height:1.4;">
+    <div style="text-align:center;font-size:10px;font-weight:400;color:#ccc;letter-spacing:3px;text-transform:uppercase;padding:14px 0 0;">QUOTE</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 22px;">
+      <div>${logoSrc&&logoSrc.length>100?`<img src="${logoSrc}" style="height:48px;object-fit:contain;display:block;">`:`<div style="font-size:15px;font-weight:700;color:#1a2332;">${c.companyName}</div>`}</div>
+      <div style="text-align:right;font-size:12px;">
+        <div style="font-weight:700;margin-bottom:3px;">Prepared For</div>
+        <div style="font-weight:600;">${doc.clientName}</div>
+        <div style="color:#555;">${(doc.serviceAddress||doc.address||'').split(',').map(s=>s.trim()).filter(Boolean).join('<br>')}</div>
+        ${doc.mobile||doc.phone?`<div style="color:#555;">${doc.mobile||doc.phone}</div>`:''}
       </div>
     </div>
-
-    <!-- Line items -->
-    <div class="cust-card">
-      <div style="font-size:13px;font-weight:700;color:#111;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Works Included</div>
-      <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;display:grid;grid-template-columns:1fr auto;gap:8px;padding-bottom:8px;border-bottom:1px solid #e5e5e0;margin-bottom:4px;">
-        <span>Description</span><span style="text-align:right;">Total</span>
+    <div style="display:flex;justify-content:space-between;padding:8px 22px 14px;border-bottom:1px solid #ddd;">
+      <div style="font-size:12px;">
+        <div style="font-weight:700;margin-bottom:3px;">${c.companyName}</div>
+        <div style="color:#555;line-height:1.8;">${c.address||''}<br>${c.city||''} ${c.postcode||''}<br>Tel: ${c.phone||''}<br>Email: ${c.email||''}</div>
       </div>
-      ${doc.lineItems.map(li=>`<div style="padding:10px 0;border-bottom:1px solid #f5f5f3;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;">
-        <div>
-          <div style="font-weight:600;font-size:13px;color:#111;">${li.name}</div>
-          <div style="font-size:11px;color:#888;margin-top:3px;line-height:1.5;">${(li.desc||'').substring(0,150)}${(li.desc||'').length>150?'...':''}</div>
-        </div>
-        <div style="font-size:13px;font-weight:600;color:#111;white-space:nowrap;padding-top:2px;">${li.rate>0?fmt(li.rate*li.qty):'—'}</div>
-      </div>`).join('')}
+      <div style="text-align:right;font-size:12px;color:#555;">
+        <div style="display:flex;justify-content:space-between;gap:14px;margin-bottom:2px;"><span style="font-weight:600;color:#222;">Quote #</span><span>${doc.ref}</span></div>
+        <div style="display:flex;justify-content:space-between;gap:14px;margin-bottom:2px;"><span style="font-weight:600;color:#222;">Date</span><span>${fdLong(doc.date)}</span></div>
+        ${doc.expiryDate?`<div style="display:flex;justify-content:space-between;gap:14px;"><span style="font-weight:600;color:#222;">Valid Until</span><span>${fdLong(doc.expiryDate)}</span></div>`:''}
+      </div>
     </div>
-
-    <!-- Totals -->
-    <div class="cust-card">
-      <div class="cust-total-row" style="font-size:13px;"><span style="color:#666;">Subtotal</span><span>${fmt(sub)}</span></div>
-      ${markup>0?`<div class="cust-total-row" style="font-size:13px;"><span style="color:#666;">Markup</span><span style="color:#276749;">+${fmt(markup)}</span></div>`:''}
-      ${discount>0?`<div class="cust-total-row" style="font-size:13px;"><span style="color:#666;">Discount</span><span style="color:#c62828;">-${fmt(discount)}</span></div>`:''}
-      ${vat>0?`<div class="cust-total-row" style="font-size:13px;"><span style="color:#666;">VAT (20%)</span><span>${fmt(vat)}</span></div>`:''}
-      <div style="height:1px;background:#111;margin:8px 0;"></div>
-      <div class="cust-total-row"><span style="font-weight:700;font-size:16px;">Total</span><span style="font-weight:700;font-size:18px;">${fmt(grand)}</span></div>
-      ${deposit>0?`
-        <div style="margin-top:12px;padding:10px 12px;background:#fff8e1;border-radius:7px;font-size:13px;color:#92400e;">
+    <div style="padding:0 22px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin:10px 0;">
+        <thead><tr style="border-bottom:2px solid #222;">
+          <th style="text-align:left;padding:6px 0;font-weight:600;">Description</th>
+          <th style="text-align:right;padding:6px 0;font-weight:600;white-space:nowrap;padding-left:12px;">Total</th>
+        </tr></thead>
+        <tbody>
+          ${doc.lineItems.map(li=>`<tr style="border-bottom:1px solid #eee;">
+            <td style="padding:10px 12px 10px 0;vertical-align:top;">
+              <div style="font-weight:600;">${li.name}</div>
+              <div style="color:#666;font-size:11px;margin-top:3px;line-height:1.6;">${(li.desc||'').replace(/\n/g,'<br>')}</div>
+            </td>
+            <td style="text-align:right;padding:10px 0;vertical-align:top;white-space:nowrap;font-weight:500;padding-left:12px;">${li.rate>0?fmt(li.rate*(li.qty||1)):'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:flex-end;padding:0 22px 16px;">
+      <div style="min-width:200px;font-size:12px;">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;"><span style="font-weight:600;">Subtotal</span><span>${fmt(sub)}</span></div>
+        ${markup>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;"><span>Markup</span><span>+${fmt(markup)}</span></div>`:''}
+        ${discount>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;"><span>Discount</span><span>-${fmt(discount)}</span></div>`:''}
+        ${vat>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;"><span>VAT (20%)</span><span>${fmt(vat)}</span></div>`:''}
+        <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:14px;"><span>Total</span><span>${fmt(grand)}</span></div>
+        ${deposit>0?`<div style="margin-top:8px;padding:8px 10px;background:#fff8e1;border-radius:6px;font-size:11px;color:#92400e;">
           <div style="display:flex;justify-content:space-between;font-weight:600;"><span>Deposit Required</span><span>${fmt(deposit)}</span></div>
-          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:12px;color:#b45309;"><span>Balance on completion</span><span>${fmt(grand-deposit)}</span></div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px;color:#b45309;"><span>Balance on completion</span><span>${fmt(grand-deposit)}</span></div>
         </div>`:''}
-    </div>
-
-    ${(doc.photos||[]).length>0?`<div class="cust-card">
-      <div style="font-size:13px;font-weight:700;color:#111;margin-bottom:10px;">Site Photos</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
-        ${(doc.photos||[]).map(p=>`<img src="${p.data}" style="width:100%;border-radius:8px;object-fit:cover;aspect-ratio:4/3;">`).join('')}
       </div>
-    </div>`:''}
-
-    <!-- Terms -->
-    <div class="cust-card" style="background:#f9f9f7;">
-      <div style="font-size:12px;color:#666;line-height:1.7;">${c.quoteFooter||'All works carry a 2-year workmanship guarantee. Acceptance of this quotation constitutes agreement to our Terms & Conditions of Service.'}</div>
     </div>
-
-    <!-- Company footer with signature & logos -->
-    <div class="cust-card" style="padding:0;overflow:hidden;">
-      ${docFooterHTML(c)}
-    </div>
-
-    <!-- Accept / Expired -->
-    <div class="cust-card" id="cust-sign-section">
-      ${expired?`
-        <div style="text-align:center;padding:10px 0 6px;">
-          <div style="font-size:36px;margin-bottom:10px;">⏰</div>
-          <div style="font-size:17px;font-weight:700;color:#555;margin-bottom:6px;">This Quote Has Expired</div>
-          <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:16px;">Valid until <strong>${doc.expiryDate}</strong> — please get in touch for an updated quote.</div>
-          <a href="tel:${c.phone}" style="display:block;width:100%;padding:14px;background:#276749;color:#fff;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;text-align:center;">📞 Call Us — ${c.phone}</a>
-          <a href="mailto:${c.email}?subject=Updated quote request — ${doc.ref}" style="display:block;width:100%;padding:12px;background:#f0faf4;color:#276749;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;border:1.5px solid #a7f3d0;text-align:center;">✉️ Request New Quote</a>
-        </div>
-      `:`
-        <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:4px;">Accept This Quote</div>
-        <div style="font-size:13px;color:#888;margin-bottom:16px;">By signing below you confirm you have read and accept this quotation and our Terms &amp; Conditions.</div>
-        <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Sign With Your Finger</div>
-        <div style="position:relative;">
-          <canvas id="cust-sig-canvas" class="cust-sig-pad" height="160"></canvas>
-          <button onclick="clearCustSig()" style="position:absolute;top:8px;right:8px;background:#fff;border:1px solid #ddd;border-radius:5px;padding:4px 10px;font-size:11px;color:#888;cursor:pointer;">Clear</button>
-          <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#ccc;pointer-events:none;">Sign here</div>
-        </div>
-        <button class="cust-accept-btn" onclick="submitCustSignature('${doc.ref}')" style="margin-top:12px;">
-          ✅ Accept Quote · ${fmt(grand)}
-        </button>
-        <div style="text-align:center;margin-top:10px;font-size:11px;color:#aaa;">
-          Not ready yet? Simply close this page — the quote stays open until ${doc.expiryDate||'the expiry date'}.
-        </div>
-      `}
-    </div>
-  `;
-
-  // Init sig pad
+    ${(doc.photos||[]).length>0?`<div style="padding:0 22px 16px;border-top:1px solid #eee;padding-top:12px;"><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">${(doc.photos||[]).map(p=>`<img src="${p.data}" style="width:100%;border-radius:4px;object-fit:cover;">`).join('')}</div></div>`:''}
+    <div style="padding:10px 22px;border-top:1px solid #ddd;font-size:11px;color:#555;">Company No. ${c.companyNumber||'87688895'} &nbsp;·&nbsp; VAT ${c.vatNumber||'185650778'}</div>
+    ${docFooterHTML(c)}
+    <div style="padding:12px 22px 16px;border-top:1px solid #eee;font-size:11px;color:#777;line-height:1.6;">${c.quoteFooter||''}</div>
+    ${expired?`<div style="padding:20px 22px;border-top:2px solid #eee;text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">⏰</div>
+      <div style="font-size:17px;font-weight:700;color:#555;margin-bottom:6px;">This Quote Has Expired</div>
+      <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:16px;">Valid until <strong>${fdLong(doc.expiryDate)}</strong> — please get in touch for an updated quote.</div>
+      <a href="tel:${c.phone}" style="display:block;width:100%;padding:14px;background:#276749;color:#fff;border-radius:8px;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px;text-align:center;box-sizing:border-box;">📞 Call Us — ${c.phone}</a>
+      <a href="mailto:${c.email}" style="display:block;width:100%;padding:12px;background:#f0faf4;color:#276749;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;border:1.5px solid #a7f3d0;text-align:center;box-sizing:border-box;">✉️ Request New Quote</a>
+    </div>`:`<div style="padding:20px 22px;border-top:2px solid #276749;background:#f9fdf9;">
+      <div style="font-size:15px;font-weight:700;color:#1a2332;margin-bottom:4px;">Accept This Quote</div>
+      <div style="font-size:12px;color:#666;margin-bottom:12px;">By signing below you confirm you have read and accept this quotation and our Terms &amp; Conditions.</div>
+      <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Sign With Your Finger or Mouse</div>
+      <div style="position:relative;border:2px dashed #276749;border-radius:8px;background:#fafff9;">
+        <canvas id="cust-sig-canvas" class="cust-sig-pad" height="130" style="display:block;width:100%;"></canvas>
+        <button onclick="clearCustSig()" style="position:absolute;top:8px;right:8px;background:#fff;border:1px solid #ddd;border-radius:5px;padding:4px 10px;font-size:11px;color:#888;cursor:pointer;">Clear</button>
+        <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:#ccc;pointer-events:none;">Sign here</div>
+      </div>
+      <button onclick="submitCustSignature('${doc.ref}')" style="margin-top:12px;width:100%;padding:15px;background:#276749;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        ✅ Accept Quote · ${fmt(grand)}
+      </button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:#aaa;">Not ready yet? Simply close this page — the quote stays open until ${doc.expiryDate?fdLong(doc.expiryDate):'the expiry date'}.</div>
+    </div>`}
+  </div>
+  </div>`;
   setTimeout(()=>{
     const canvas=document.getElementById('cust-sig-canvas');
     if(!canvas)return;
@@ -3017,7 +2997,6 @@ function renderCustomerView(doc){
     custSigCtx=canvas.getContext('2d');
     custSigCtx.strokeStyle='#1a2332';custSigCtx.lineWidth=2.5;custSigCtx.lineCap='round';custSigCtx.lineJoin='round';
     custSigHasMark=false;
-
     function getP(e){const r=canvas.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*(canvas.width/r.width),y:(t.clientY-r.top)*(canvas.height/r.height)};}
     function start(e){e.preventDefault();custSigDrawing=true;custSigHasMark=true;const p=getP(e);custSigLast=p;custSigCtx.beginPath();custSigCtx.arc(p.x,p.y,1,0,Math.PI*2);custSigCtx.fill();}
     function move(e){e.preventDefault();if(!custSigDrawing)return;const p=getP(e);custSigCtx.beginPath();custSigCtx.moveTo(custSigLast.x,custSigLast.y);custSigCtx.lineTo(p.x,p.y);custSigCtx.stroke();custSigLast=p;}
