@@ -2881,6 +2881,7 @@ function closeCustomerView(){
 function renderCustomerView(doc){
   const body=document.getElementById('cust-body');
   const c=S.co;
+S.custDoc=doc;
   const logoEl=document.getElementById('cust-logo-display');
   if(logoEl){
     const logoSrc=(document.getElementById('apl-logo-img')||{src:''}).src;
