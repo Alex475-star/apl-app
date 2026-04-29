@@ -3016,9 +3016,8 @@ function submitCustSignature(ref){
     alert('Please sign before accepting.');return;
   }
   const canvas=document.getElementById('cust-sig-canvas');
-  const doc=S.estimates.find(e=>e.ref===ref);
+  let doc=S.estimates.find(e=>e.ref===ref)||S.invoices.find(i=>i.ref===ref)||S.custDoc;
   if(!doc||!canvas)return;
-
   // Save signature and mark approved
   doc.signature=canvas.toDataURL('image/png');
   doc.signedAt=new Date().toISOString();
