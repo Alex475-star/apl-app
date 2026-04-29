@@ -1855,19 +1855,6 @@ function markShared(ref, doc){
   const isI=ref.includes('invoice');
 
   // Send real email via Resend if customer has an email address
-  if(doc.email){
-    const c=S.co;
-    const liveLink=`https://alexander-pointing.netlify.app/view/${ref}`;
-    const reviewLink=c.googleReviewUrl||'';
-    let bodyTemplate=isI?(c.invoiceEmailBody||''):(c.quoteEmailBody||'');
-    const msgText=bodyTemplate.replace(/\[Name\]/g,doc.clientName).replace(/\[REVIEW_LINK\]/g,reviewLink)+`\n\nView your ${isI?'invoice':'quote'} here: ${liveLink}`;
-    const msgHtml=`<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">${msgText.replace(/\n/g,'<br>')}</div>`;
-    const subj=isI?(c.invoiceEmailSubject||'Your Invoice from Alexander Pointing Ltd'):(c.quoteEmailSubject||'Your Quote from Alexander Pointing Ltd');
-    sendEmail(doc.email,subj,msgHtml).then(ok=>{
-      if(ok)toast('📧 Email sent to '+doc.email);
-      else toast('⚠️ Email could not be sent — share manually','#e65100');
-    });
-  }
 
   // Simulate open/view tracking (replaced by real webhooks once hosted properly)
   setTimeout(()=>{
