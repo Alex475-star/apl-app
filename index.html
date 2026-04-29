@@ -1793,7 +1793,7 @@ async function doSendEmail(ref,link,btn){
   btn.textContent='Sending...';btn.disabled=true;
   const linkMatch=body.match(/(https?:\/\/[^\s]+)/);
   const quoteLink=linkMatch?linkMatch[0]:'';
-  const bodyHtml=body.replace(/\n/g,'<br>');
+  const bodyHtml=body.replace(/(https?:\/\/[^\s]+)/g,'').replace(/\n/g,'<br>').replace(/View your quote here:<br>/i,'').replace(/View your invoice here:<br>/i,'');
   const html=`<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">${bodyHtml}${quoteLink?`<br><br><a href="${quoteLink}" style="display:inline-block;padding:14px 28px;background:#276749;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">View Your ${isI?'Invoice':'Quote'} →</a>`:''}
   </div>`;
   const ok=await sendEmail(to,subj,html);
