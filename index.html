@@ -1774,7 +1774,7 @@ function openShareModal(ref){
       🔗 Unique link included — you'll be notified when ${doc.clientName} opens it
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
-      <button class="bg" style="width:100%;font-size:13px;padding:11px;" onclick="doSendEmail('${ref}','${liveLink}',this)">✉️ Open in Outlook / Email App</button>
+      <button class="bg" style="width:100%;font-size:13px;padding:11px;" onclick="doSendEmail('${ref}','${liveLink}',this)">✉️ Send Email</button>
       <button class="bs" style="width:100%;font-size:13px;padding:11px;" onclick="doShareWithBody('${ref}','${liveLink}')">⬆ Share via WhatsApp / iMessage / other</button>
       <button class="bs" style="width:100%;font-size:13px;padding:10px;" onclick="copyShareBody('${ref}','${liveLink}')">📋 Copy message to clipboard</button>
       <button class="bs" style="width:100%;" onclick="this.closest('.send-overlay').remove()">Cancel</button>
@@ -1789,22 +1789,19 @@ async function doSendEmail(ref,link,btn){
   const subj=document.getElementById('share-subj')?.value||('Your '+(isI?'Invoice':'Quote')+' from Alexander Pointing Ltd');
   const body=document.getElementById('share-body')?.value||'';
   const to=doc.email||'';
-  // Build the full message with the link
-  const fullBody=body+'\n\nView your '+(isI?'invoice':'quote')+' here: '+link+'\n\nKind regards,\nIain Alexander\nAlexander Pointing Ltd\nTel: 0161 327 2843 | 07786 436 863';
-  if(to){
-    // Open in email client (Outlook etc) pre-filled
-    const mailtoUrl='mailto:'+encodeURIComponent(to)+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(fullBody);
-    window.open(mailtoUrl,'_blank');
+  if(!to){toast('No email address on file — use copy or share instead','#e65100');return;}
+  btn.textContent='Sending...';btn.disabled=true;
+  const html=`<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">${body.replace(/\n/g,'<br>')}</div>`;
+  const ok=await sendEmail(to,subj,html);
+  if(ok){
     markShared(ref,doc);
-    toast('Outlook opened — click Send to deliver the email');
+    toast('✅ Email sent to '+to);
     document.querySelector('.send-overlay')?.remove();
   } else {
-    // No email — copy to clipboard instead
-    await navigator.clipboard.writeText(fullBody).catch(()=>{});
-    toast('No email address on file — message copied to clipboard instead');
+    btn.textContent='✉️ Send Email';btn.disabled=false;
+    toast('❌ Email failed — check Worker is deployed','#c62828');
   }
 }
-
 async function doShareWithBody(ref,link){
   const doc=S.estimates.find(e=>e.ref===ref)||S.invoices.find(i=>i.ref===ref);if(!doc)return;
   const isI=ref.includes('invoice');
