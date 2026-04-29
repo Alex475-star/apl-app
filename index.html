@@ -1624,21 +1624,21 @@ function openNewClientForm(){
       </div>
     </div>
     <div class="modal-body">
-      <div class="fl"><label>Full Name</label><input class="fi" id="nc-name" value="${name}" placeholder="Client full name" autocapitalize="words" autocorrect="off" oninput="capWords(this)"></div>
+      <div class="fl"><label>Full Name</label><input class="fi" id="nc-name" value="${name}" placeholder="Client full name" autocapitalize="words" autocomplete="off" autocorrect="off" oninput="capWords(this)"></div>
 
       <div style="background:#f5f5f3;padding:6px 10px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;border-radius:5px;margin:12px 0 8px;">Basic Info</div>
-      <div class="fl"><label>Email</label><input class="fi" id="nc-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off"></div>
-      <div class="fl"><label>Mobile Number</label><input class="fi" id="nc-mobile" type="tel" inputmode="tel" placeholder="Mobile number"></div>
-      <div class="fl"><label>Home Number</label><input class="fi" id="nc-home" type="tel" inputmode="tel" placeholder="Home number (optional)"></div>
+      <div class="fl"><label>Email</label><input class="fi" id="nc-email" type="email" placeholder="Email address" autocapitalize="none" autocomplete="off" autocorrect="off"></div>
+      <div class="fl"><label>Mobile Number</label><input class="fi" id="nc-mobile" type="tel" inputmode="tel" placeholder="Mobile number" autocomplete="off"></div>
+      <div class="fl"><label>Home Number</label><input class="fi" id="nc-home" type="tel" inputmode="tel" placeholder="Home number (optional)" autocomplete="off"></div>
 
       <div style="background:#f5f5f3;padding:6px 10px;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;border-radius:5px;margin:12px 0 8px;">
         Service Address <span style="font-size:9px;font-weight:400;text-transform:none;">(where work is carried out)</span>
       </div>
-      <div class="fl"><label>Address Line 1</label><input class="fi" id="nc-sa1" placeholder="Street address" autocapitalize="words" oninput="capWords(this)"></div>
-      <div class="fl"><label>Address Line 2</label><input class="fi" id="nc-sa2" placeholder="Area / estate (optional)" autocapitalize="words" oninput="capWords(this)"></div>
+      <div class="fl"><label>Address Line 1</label><input class="fi" id="nc-sa1" placeholder="Street address" autocapitalize="words" autocomplete="off" oninput="capWords(this)"></div>
+      <div class="fl"><label>Address Line 2</label><input class="fi" id="nc-sa2" placeholder="Area / estate (optional)" autocapitalize="words" autocomplete="off" oninput="capWords(this)"></div>
       <div class="tc">
-        <div class="fl"><label>Town / City</label><input class="fi" id="nc-scity" placeholder="Town" autocapitalize="words" oninput="capWords(this)"></div>
-        <div class="fl"><label>Postcode</label><input class="fi" id="nc-spost" placeholder="Postcode" autocapitalize="characters" style="text-transform:uppercase;" oninput="capUpper(this)"></div>
+        <div class="fl"><label>Town / City</label><input class="fi" id="nc-scity" placeholder="Town" autocapitalize="words" autocomplete="off" oninput="capWords(this)"></div>
+        <div class="fl"><label>Postcode</label><input class="fi" id="nc-spost" placeholder="Postcode" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;" oninput="capUpper(this)"></div>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #e5e5e0;border-bottom:1px solid #e5e5e0;margin:12px 0;cursor:pointer;" onclick="toggleBillingDiff()">
