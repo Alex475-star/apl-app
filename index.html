@@ -579,20 +579,19 @@ async function supa(method,table,body,match){
   return r.status===204?true:r.json();
 }
 
-// Send email via Netlify serverless function (which calls Resend)
+// Send email via Cloudflare Worker
 async function sendEmail(to,subject,html){
   try{
-    const r=await fetch('https://api.resend.com/emails',{
+    const r=await fetch('https://apl-mailer.winter-tree-55f9.workers.dev',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer re_JzQm5wn1_4xCKAwthjPP3Jafu1pUrHYYV'},
-      body:JSON.stringify({from:'Alexander Pointing Ltd <mail@ukpointing.com>',to:[to],subject,html})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to,subject,html})
     });
     const data=await r.json();
-    if(!r.ok){console.error('Resend error:',data);return false;}
+    if(!r.ok){console.error('Email error:',data);return false;}
     return true;
   }catch(e){console.error('Email error:',e);return false;}
 }
-
 const TRUSTED_DEVICE_KEY='apl_trusted';
 let mfaCode='';
 let mfaUser='';
