@@ -1791,7 +1791,11 @@ async function doSendEmail(ref,link,btn){
   const to=doc.email||'';
   if(!to){toast('No email address on file — use copy or share instead','#e65100');return;}
   btn.textContent='Sending...';btn.disabled=true;
-  const html=`<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">${body.replace(/\n/g,'<br>').replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" style="color:#276749;font-weight:600;">$1</a>')}</div>`;
+  const linkMatch=body.match(/(https?:\/\/[^\s]+)/);
+  const quoteLink=linkMatch?linkMatch[0]:'';
+  const bodyHtml=body.replace(/\n/g,'<br>');
+  const html=`<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">${bodyHtml}${quoteLink?`<br><br><a href="${quoteLink}" style="display:inline-block;padding:14px 28px;background:#276749;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;">View Your ${isI?'Invoice':'Quote'} →</a>`:''}
+  </div>`;
   const ok=await sendEmail(to,subj,html);
   if(ok){
     markShared(ref,doc);
