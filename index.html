@@ -1187,81 +1187,138 @@ function clearModals(){
 
 
 // ─── Weather Widget ───────────────────────────────────────────────────────
-const WMO={0:'Clear',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Foggy',48:'Icy Fog',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',80:'Light Showers',81:'Showers',82:'Heavy Showers',95:'Thunderstorm',99:'Heavy Thunderstorm'};
-const WMO_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',99:'⛈️'};
+const WMO={0:'Clear',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Foggy',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',80:'Light Showers',81:'Showers',82:'Heavy Showers',95:'Thunderstorm',99:'Heavy Thunderstorm'};
+const WMO_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',99:'⛈️'};
 const RAIN_CODES=new Set([51,53,55,61,63,65,80,81,82,95,96,99]);
-let wxLat=null;let wxLon=null;
+let wxLat=null,wxLon=null,wxMap=null,wxLayers=[],wxFrames=[],wxFIdx=0,wxAnim=null;
 
 function loadWeather(){
   const el=document.getElementById('wx-card');if(!el)return;
-  el.innerHTML='<div style="text-align:center;padding:20px;color:#888;font-size:13px;">📍 Getting your location...</div>';
-  if(!navigator.geolocation){el.innerHTML='<div style="text-align:center;padding:20px;color:#888;">Location not supported by this browser</div>';return;}
+  el.innerHTML='<div style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);border-radius:12px;padding:20px;text-align:center;color:rgba(255,255,255,0.6);font-size:13px;">📍 Getting your location...</div>';
+  if(!navigator.geolocation){el.innerHTML='<div style="padding:20px;text-align:center;color:#888;">Location not supported</div>';return;}
   navigator.geolocation.getCurrentPosition(function(pos){
     wxLat=pos.coords.latitude;wxLon=pos.coords.longitude;
-    reverseGeocode(wxLat,wxLon);
-    fetchWeather(wxLat,wxLon);
+    buildWeatherCard(wxLat,wxLon);
   },function(){
-    el.innerHTML='<div style="text-align:center;padding:16px;"><div style="color:#888;font-size:13px;margin-bottom:10px;">📍 Location permission needed</div><button onclick="loadWeather()" style="background:#276749;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;">Allow Location</button></div>';
+    const el=document.getElementById('wx-card');
+    if(el)el.innerHTML='<div style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);border-radius:12px;padding:20px;text-align:center;">'
+      +'<div style="color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:12px;">📍 Allow location for weather</div>'
+      +'<button onclick="loadWeather()" style="background:#276749;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;">Allow</button></div>';
   },{timeout:10000});
 }
 
-function reverseGeocode(lat,lon){
-  fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json',{headers:{'Accept-Language':'en'}})
-    .then(r=>r.json()).then(d=>{
-      const loc=d.address.town||d.address.city||d.address.village||d.address.suburb||'';
-      const el=document.getElementById('wx-location');if(el&&loc)el.textContent='📍 '+loc;
-    }).catch(()=>{});
-}
+function buildWeatherCard(lat,lon){
+  const el=document.getElementById('wx-card');if(!el)return;
+  el.innerHTML='<div style="background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);border-radius:12px;overflow:hidden;">'
+    +'<div id="wx-warn-bar"></div>'
+    +'<div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div><div id="wx-loc" style="color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">LOADING...</div>'
+    +'<div id="wx-main" style="display:flex;align-items:center;gap:12px;margin-top:6px;">'
+    +'<div id="wx-icon" style="font-size:48px;line-height:1;">⏳</div>'
+    +'<div><div id="wx-temp" style="font-size:42px;font-weight:800;color:#fff;line-height:1;">--°</div>'
+    +'<div id="wx-desc" style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:2px;">Loading...</div>'
+    +'<div id="wx-extra" style="color:rgba(255,255,255,0.5);font-size:11px;margin-top:2px;"></div>'
+    +'</div></div></div>'
+    +'<button onclick="loadWeather()" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.5);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;">🔄</button>'
+    +'</div>'
+    +'<div id="wx-radar-wrap" style="width:100%;height:200px;position:relative;background:#1a2a3a;">'
+    +'<div id="wx-radar" style="width:100%;height:200px;"></div>'
+    +'<div id="wx-radar-label" style="position:absolute;bottom:6px;left:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;pointer-events:none;">Loading radar...</div>'
+    +'</div>'
+    +'<div id="wx-hours" style="padding:12px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;border-top:1px solid rgba(255,255,255,0.08);"></div>'
+    +'</div>';
 
-function fetchWeather(lat,lon){
-  const nowH=new Date().getHours();
+  // Fetch weather data
   fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon
     +'&current=temperature_2m,weathercode,windspeed_10m,apparent_temperature'
-    +'&hourly=temperature_2m,weathercode,precipitation_probability,precipitation'
-    +'&forecast_days=1&timezone=Europe/London')
+    +'&hourly=temperature_2m,weathercode,precipitation_probability&forecast_days=1&timezone=Europe/London')
     .then(r=>r.json()).then(d=>{
       const cur=d.current;
       const code=cur.weathercode;
-      const temp=Math.round(cur.temperature_2m);
-      const feels=Math.round(cur.apparent_temperature);
-      const wind=Math.round(cur.windspeed_10m);
+      document.getElementById('wx-icon').textContent=WMO_ICON[code]||'🌡️';
+      document.getElementById('wx-temp').textContent=Math.round(cur.temperature_2m)+'°';
+      document.getElementById('wx-desc').textContent=WMO[code]||'';
+      document.getElementById('wx-extra').textContent='Feels '+Math.round(cur.apparent_temperature)+'° · 💨 '+Math.round(cur.windspeed_10m)+' km/h';
+      const nowH=new Date().getHours();
       const hrs=d.hourly;
       const idx=(hrs.time||[]).findIndex(t=>new Date(t).getHours()===nowH);
       const next4=[];
-      for(let i=1;i<=4;i++){const j=idx+i;if(j<hrs.time.length)next4.push({h:new Date(hrs.time[j]).getHours(),t:Math.round(hrs.temperature_2m[j]),c:hrs.weathercode[j],p:hrs.precipitation_probability[j],r:hrs.precipitation[j]});}
+      for(let i=1;i<=4;i++){const j=idx+i;if(j<hrs.time.length)next4.push({h:new Date(hrs.time[j]).getHours(),t:Math.round(hrs.temperature_2m[j]),c:hrs.weathercode[j],p:hrs.precipitation_probability[j]});}
       const rainSoon=next4.slice(0,2).some(h=>h.p>=60||RAIN_CODES.has(h.c));
       const heavySoon=next4.slice(0,2).some(h=>h.p>=80||[65,82,95,96,99].includes(h.c));
-      renderWeather(code,temp,feels,wind,next4,rainSoon,heavySoon);
-    }).catch(()=>{const el=document.getElementById('wx-card');if(el)el.innerHTML='<div style="text-align:center;padding:16px;color:#888;font-size:13px;">Weather unavailable</div>';});
+      const wb=document.getElementById('wx-warn-bar');
+      if(wb){if(heavySoon)wb.innerHTML='<div style="background:#c62828;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;">⚠️ Heavy rain coming — wrap up works soon!</div>';
+        else if(rainSoon)wb.innerHTML='<div style="background:#e65100;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;">🌧️ Rain likely in the next 2 hours</div>';}
+      const hw=document.getElementById('wx-hours');
+      if(hw)hw.innerHTML=next4.map(h=>'<div style="background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 4px;text-align:center;">'
+        +'<div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;">'+h.h+':00</div>'
+        +'<div style="font-size:22px;margin:4px 0;">'+(WMO_ICON[h.c]||'🌡️')+'</div>'
+        +'<div style="font-size:14px;font-weight:700;color:#fff;">'+h.t+'°</div>'
+        +(h.p>15?'<div style="font-size:11px;color:'+(h.p>=60?'#ff6b6b':'#64b5f6')+';font-weight:600;">'+h.p+'%</div>':'<div style="font-size:11px;color:rgba(255,255,255,0.2);">-</div>')
+        +'</div>').join('');
+    }).catch(()=>{});
+
+  // Reverse geocode
+  fetch('https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json',{headers:{'Accept-Language':'en'}})
+    .then(r=>r.json()).then(d=>{
+      const loc=d.address.town||d.address.city||d.address.village||d.address.suburb||'';
+      const el=document.getElementById('wx-loc');if(el&&loc)el.textContent='📍 '+loc.toUpperCase();
+    }).catch(()=>{});
+
+  // Load Leaflet then init radar map
+  loadLeafletLib().then(()=>{
+    setTimeout(()=>initRadarMap(lat,lon),300);
+  });
 }
 
-function renderWeather(code,temp,feels,wind,next4,rainSoon,heavySoon){
-  const el=document.getElementById('wx-card');if(!el)return;
-  const windyUrl='https://embed.windy.com/embed2.html?lat='+wxLat+'&lon='+wxLon+'&detailLat='+wxLat+'&detailLon='+wxLon
-    +'&width=650&height=280&zoom=9&level=surface&overlay=rain&menu=&message=&marker=true&calendar=&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0C&radarRange=-1';
-  el.innerHTML=(heavySoon?'<div style="background:#c62828;color:#fff;padding:12px 16px;font-size:14px;font-weight:700;border-radius:12px 12px 0 0;">⚠️ Heavy rain coming — wrap up works soon!</div>'
-    :rainSoon?'<div style="background:#f59e0b;color:#fff;padding:12px 16px;font-size:14px;font-weight:700;border-radius:12px 12px 0 0;">🌧️ Rain likely in the next 2 hours</div>':'')
-    +'<div style="padding:16px;">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
-    +'<div style="display:flex;align-items:center;gap:12px;">'
-    +'<div style="font-size:52px;line-height:1;">'+(WMO_ICON[code]||'🌡️')+'</div>'
-    +'<div><div style="font-size:36px;font-weight:800;color:#111;line-height:1;">'+temp+'°C</div>'
-    +'<div style="font-size:13px;color:#555;margin-top:2px;">'+(WMO[code]||'')+'</div>'
-    +'<div style="font-size:12px;color:#888;">Feels like '+feels+'° · 💨 '+wind+' km/h</div></div></div>'
-    +'<div><div id="wx-location" style="font-size:13px;color:#276749;font-weight:600;text-align:right;">📍 Loading...</div>'
-    +'<button onclick="loadWeather()" style="font-size:11px;color:#888;background:none;border:none;cursor:pointer;margin-top:4px;float:right;">🔄 Refresh</button></div>'
-    +'</div>'
-    +'<iframe src="'+windyUrl+'" style="width:100%;height:220px;border:none;border-radius:10px;margin-bottom:14px;" allowfullscreen></iframe>'
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">'
-    +next4.map(h=>'<div style="background:#f4f8f4;border-radius:10px;padding:10px 6px;text-align:center;">'
-      +'<div style="font-size:12px;color:#888;font-weight:600;">'+h.h+':00</div>'
-      +'<div style="font-size:22px;margin:4px 0;">'+(WMO_ICON[h.c]||'🌡️')+'</div>'
-      +'<div style="font-size:14px;font-weight:700;">'+h.t+'°</div>'
-      +(h.p>20?'<div style="font-size:11px;color:'+(h.p>=60?'#c62828':'#1565c0')+';font-weight:600;">'+h.p+'%</div>':'<div style="font-size:11px;color:#ccc;">-</div>')
-      +'</div>').join('')
-    +'</div></div>';
-  // Reverse geocode after render
-  if(wxLat)reverseGeocode(wxLat,wxLon);
+function loadLeafletLib(){
+  return new Promise(resolve=>{
+    if(window.L){resolve();return;}
+    const lnk=document.createElement('link');lnk.rel='stylesheet';
+    lnk.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(lnk);
+    const scr=document.createElement('script');
+    scr.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    scr.onload=resolve;document.head.appendChild(scr);
+  });
+}
+
+function initRadarMap(lat,lon){
+  const el=document.getElementById('wx-radar');if(!el||wxMap)return;
+  wxMap=L.map('wx-radar',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false}).setView([lat,lon],7);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(wxMap);
+  L.circleMarker([lat,lon],{radius:7,fillColor:'#4ade80',fillOpacity:1,color:'#fff',weight:2,zIndexOffset:1000}).addTo(wxMap);
+  // Fetch RainViewer frames (past + nowcast = current + predicted)
+  fetch('https://api.rainviewer.com/public/weather-maps.json')
+    .then(r=>r.json()).then(data=>{
+      // Combine past (last 4) + nowcast (next predicted frames)
+      const past=(data.radar.past||[]).slice(-4);
+      const nowcast=(data.radar.nowcast||[]);
+      wxFrames=[...past,...nowcast];
+      if(wxFrames.length===0)return;
+      // Create tile layers
+      wxLayers=wxFrames.map(f=>L.tileLayer(
+        'https://tilecache.rainviewer.com/v2/radar/'+f.time+'/256/{z}/{x}/{y}/4/1_1.png',
+        {opacity:0.65,tileSize:256,zIndex:2}
+      ));
+      wxFIdx=0;
+      wxLayers[0].addTo(wxMap);
+      const lbl=document.getElementById('wx-radar-label');
+      if(lbl)lbl.textContent=nowcast.length>0?'Animated radar (past + forecast)':'Animated radar';
+      // Animate
+      if(wxAnim)clearInterval(wxAnim);
+      wxAnim=setInterval(()=>{
+        if(!wxMap)return;
+        const prev=wxFIdx;
+        wxFIdx=(wxFIdx+1)%wxLayers.length;
+        if(wxMap.hasLayer(wxLayers[prev]))wxMap.removeLayer(wxLayers[prev]);
+        wxLayers[wxFIdx].addTo(wxMap);
+        // Show if viewing past or forecast
+        const isNow=wxFIdx>=past.length;
+        const lbl=document.getElementById('wx-radar-label');
+        if(lbl)lbl.textContent=isNow?'⚡ Forecast radar':'📡 Recorded radar';
+      },700);
+    }).catch(()=>{const lbl=document.getElementById('wx-radar-label');if(lbl)lbl.textContent='Radar unavailable';});
 }
 
 
