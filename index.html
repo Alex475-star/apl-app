@@ -1845,7 +1845,52 @@ function togglePicker(){S.picker=!S.picker;showEstModal();}
 function filterPicker(q){document.querySelectorAll('#picker-list .item-row').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 function addLI(i){const it=ITEMS[i];S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
 function addLI2(i){const combined=(S.customItems||[]);const it=combined[i];if(!it)return;S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
-function addBlankLI(){S.ne.lineItems.push({name:'',desc:'',rate:0,qty:1,tax:'none'});S.picker=false;showEstModal();}
+function addBlankLI(){
+  // Open item creation form — saves to Items list AND adds to quote on save
+  S.picker=false;
+  if(!S.customItems)S.customItems=[];
+  clearModals();
+  const ov=document.createElement('div');ov.className='modal-overlay';
+  ov.innerHTML=`<div class="modal" style="max-width:560px;">
+    <div class="modal-top">
+      <h2>New Item</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="bs" onclick="closeNewLIForm()">Cancel</button>
+        <button class="bg" onclick="saveNewLIItem()">Save &amp; Add to Quote</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="fl"><label>Item Name</label>
+        <input class="fi" id="nli-name" placeholder="e.g. Front Elevation Repoint" autocapitalize="words" oninput="capWords(this)" style="height:44px;font-size:15px;">
+      </div>
+      <div class="fl"><label>Description (appears on quote)</label>
+        <textarea class="ta" id="nli-desc" style="min-height:100px;font-size:14px;line-height:1.6;" placeholder="Describe the work..."></textarea>
+      </div>
+      <div class="fl"><label>Default Rate (£)</label>
+        <input class="fi" id="nli-rate" type="number" inputmode="decimal" placeholder="0.00" style="width:160px;height:44px;font-size:15px;">
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>document.getElementById('nli-name')&&document.getElementById('nli-name').focus(),100);
+}
+function closeNewLIForm(){clearModals();showEstModal();}
+function saveNewLIItem(){
+  const name=(document.getElementById('nli-name')||{value:''}).value.trim();
+  const desc=(document.getElementById('nli-desc')||{value:''}).value.trim();
+  const rate=parseFloat((document.getElementById('nli-rate')||{value:'0'}).value)||0;
+  if(!name){alert('Please enter an item name.');return;}
+  // Save to Items list
+  const newItem={id:'item_'+Date.now(),name,desc,rate};
+  if(!S.customItems)S.customItems=[];
+  S.customItems.push(newItem);
+  // Add to current quote
+  S.ne.lineItems.push({name,desc,rate,qty:1,tax:'none'});
+  saveData();
+  toast('Item saved to list and added to quote');
+  clearModals();
+  showEstModal();
+}
 function rmLI(i){S.ne.lineItems.splice(i,1);showEstModal();}
 function updLI(i,f,v){S.ne.lineItems[i][f]=(f==='rate'||f==='qty')?parseFloat(v)||0:v;showEstModal();}
 function openPhotos(){document.getElementById('photo-input').click();}
