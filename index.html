@@ -1003,7 +1003,11 @@ async function syncToSupabase(){
 function loadData(){
   try{
     const d=localStorage.getItem(SKEY);
-    if(d){const p=JSON.parse(d);Object.assign(S,p);if(!S.co)S.co={...DEF_CO};else S.co={...DEF_CO,...S.co};if(!S.activity)S.activity=[];if(!S.customItems)S.customItems=[];}
+    if(d){const p=JSON.parse(d);Object.assign(S,p);if(!S.co)S.co={...DEF_CO};else S.co={...DEF_CO,...S.co};if(!S.activity)S.activity=[];
+  if(!S.customItems||S.customItems.length===0){
+    // Seed all standard items into customItems on first load
+    S.customItems=ITEMS.map(function(it,i){return{id:'std_'+i,name:it.name,desc:it.desc||'',rate:it.rate||0};});
+  }}
   }catch(e){}
   // Always strip _META_ row from estimates (it's Supabase metadata, not a real estimate)
   S.estimates=(S.estimates||[]).filter(e=>e.ref!=='_META_');
@@ -1558,7 +1562,7 @@ function showEstModal(){
         </div>
       </div>`).join('')}
       <button class="add-line-btn" onclick="togglePicker()">+ Add Line Item</button>
-      ${S.picker?`<div class="items-picker"><input class="si" style="margin-bottom:6px;" placeholder="Search items..." oninput="filterPicker(this.value)"><div id="picker-list">${[...ITEMS,...(S.customItems||[])].map((it,i)=>`<div class="item-row" onclick="addLI2(${i})">${it.name}</div>`).join('')}</div></div>`:''}
+      ${S.picker?`<div class="items-picker"><input class="si" style="margin-bottom:6px;" placeholder="Search items..." oninput="filterPicker(this.value)"><div id="picker-list">${(S.customItems||[]).map((it,i)=>`<div class="item-row" onclick="addLI2(${i})">${it.name}</div>`).join('')}</div></div>`:''}
 
       <div style="display:flex;justify-content:flex-end;margin-top:14px;">
         <div style="width:280px;">
@@ -1836,7 +1840,7 @@ function newClient(){openNewClientForm();}
 function togglePicker(){S.picker=!S.picker;showEstModal();}
 function filterPicker(q){document.querySelectorAll('#picker-list .item-row').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 function addLI(i){const it=ITEMS[i];S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
-function addLI2(i){const combined=[...ITEMS,...(S.customItems||[])];const it=combined[i];if(!it)return;S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
+function addLI2(i){const combined=(S.customItems||[]);const it=combined[i];if(!it)return;S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
 function rmLI(i){S.ne.lineItems.splice(i,1);showEstModal();}
 function updLI(i,f,v){S.ne.lineItems[i][f]=(f==='rate'||f==='qty')?parseFloat(v)||0:v;showEstModal();}
 function openPhotos(){document.getElementById('photo-input').click();}
@@ -2554,7 +2558,7 @@ function quickEstimate(encodedName){
 // --- Items --------------------------------------------------------------------
 function rItems(m){
   const sq=(S.itemSearch||'').toLowerCase();
-  const allItems=[...ITEMS,...(S.customItems||[])];
+  const allItems=(S.customItems||[]);
   const filtered=sq?allItems.filter(it=>(it.name||'').toLowerCase().includes(sq)||(it.desc||'').toLowerCase().includes(sq)):allItems;
   const g={};
   filtered.forEach(it=>{const l=(it.name||'?')[0].toUpperCase();if(!g[l])g[l]=[];g[l].push(it);});
@@ -2568,37 +2572,27 @@ function rItems(m){
     <div class="list-box">
       ${Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0])).map(([l,items])=>`
         <div style="padding:5px 14px;background:#f9f9f7;font-size:11px;color:#888;font-weight:700;text-transform:uppercase;border-bottom:1px solid #e5e5e0;">${l}</div>
-        ${items.map(it=>{
-          const isCustom=!!(S.customItems||[]).find(c=>c.id===it.id);
-          return`<div style="padding:11px 14px;border-bottom:1px solid #f0f0ed;display:flex;align-items:flex-start;gap:10px;">
+        ${items.map(it=>`<div style="padding:11px 14px;border-bottom:1px solid #f0f0ed;display:flex;align-items:flex-start;gap:10px;">
             <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div style="font-size:13px;font-weight:600;">${it.name}</div>
-                ${isCustom?'<span style="font-size:10px;background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:3px;font-weight:600;">CUSTOM</span>':''}
-              </div>
+              <div style="font-size:13px;font-weight:600;">${it.name}</div>
               <div style="font-size:11px;color:#888;margin-top:3px;line-height:1.5;">${(it.desc||'').substring(0,120)}${(it.desc||'').length>120?'...':''}</div>
               ${it.rate>0?`<div style="font-size:11px;color:#276749;font-weight:600;margin-top:3px;">Default rate: £${it.rate.toFixed(2)}</div>`:''}
             </div>
             <div style="display:flex;gap:5px;flex-shrink:0;">
-              <button onclick="openItemForm('${it.id||it.name}')" style="font-size:12px;padding:4px 10px;background:transparent;border:1px solid #ddd;border-radius:5px;cursor:pointer;color:#555;">Edit</button>
-              ${isCustom?`<button onclick="deleteItem('${it.id}')" style="font-size:12px;padding:4px 10px;background:transparent;border:1px solid #fecdd3;border-radius:5px;cursor:pointer;color:#c62828;">Delete</button>`:''}
+              <button onclick="openItemForm('${it.id}')" style="font-size:12px;padding:4px 10px;background:transparent;border:1px solid #ddd;border-radius:5px;cursor:pointer;color:#555;">Edit</button>
+              <button onclick="deleteItem('${it.id}')" style="font-size:12px;padding:4px 10px;background:transparent;border:1px solid #fecdd3;border-radius:5px;cursor:pointer;color:#c62828;">Delete</button>
             </div>
-          </div>`;
-        }).join('')}
+          </div>`).join('')}
       `).join('')}
     </div>
-    <div style="margin-top:10px;font-size:11px;color:#888;text-align:center;">${allItems.length} items total · ${(S.customItems||[]).length} custom</div>
+    <div style="margin-top:10px;font-size:11px;color:#888;text-align:center;">${allItems.length} items</div>
   </div>`;
 }
 
 function openItemForm(idOrName){
-  // Find existing item
   let item=null;
-  let isCustom=false;
   if(idOrName){
     item=(S.customItems||[]).find(c=>c.id===idOrName);
-    if(item){isCustom=true;}
-    else{item=ITEMS.find(it=>it.name===idOrName);}
   }
   const isNew=!idOrName;
 
@@ -2607,16 +2601,13 @@ function openItemForm(idOrName){
   ov.onclick=e=>{if(e.target===ov)closeItemForm();};
   ov.innerHTML=`<div class="modal" style="max-width:560px;">
     <div class="modal-top">
-      <h2>${isNew?'New Item':isCustom?'Edit Item':'Edit Standard Item'}</h2>
+      <h2>${isNew?'New Item':'Edit Item'}</h2>
       <div style="display:flex;gap:8px;">
         <button class="bs" onclick="closeItemForm()">Cancel</button>
         <button class="bg" onclick="saveItem('${idOrName||''}')">Save</button>
       </div>
     </div>
     <div class="modal-body">
-      ${!isNew&&!isCustom?`<div style="background:#fff8e1;border:1px solid #fde68a;border-radius:7px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:14px;">
-        ⚠️ This is a standard item. Saving will create a custom version that overrides it.
-      </div>`:''}
       <div class="fl"><label>Item Name</label>
         <input class="fi" id="item-name" value="${item?item.name:''}" placeholder="e.g. Front Elevation Repoint" autocapitalize="words" oninput="capWords(this)">
       </div>
@@ -2649,25 +2640,12 @@ function saveItem(idOrName){
   if(!desc){alert('Please enter a description.');return;}
 
   if(!S.customItems)S.customItems=[];
-
-  // Check if editing existing custom item
   const existingIdx=(S.customItems).findIndex(c=>c.id===idOrName);
-
-  const newItem={
-    id: existingIdx>=0?idOrName:('custom_'+Date.now()),
-    name, desc, rate
-  };
-
+  const newItem={id:existingIdx>=0?idOrName:('item_'+Date.now()),name,desc,rate};
   if(existingIdx>=0){
     S.customItems[existingIdx]=newItem;
     toast('Item updated');
   } else {
-    // Check if it overrides a standard item
-    const stdIdx=ITEMS.findIndex(it=>it.name===name);
-    if(stdIdx>=0){
-      // Override: store with same name
-      newItem.id='custom_'+name.replace(/\s+/g,'_');
-    }
     S.customItems.push(newItem);
     toast('Item added');
   }
