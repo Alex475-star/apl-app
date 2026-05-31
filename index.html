@@ -1012,6 +1012,13 @@ function loadData(){
   // Always strip _META_ row from estimates (it's Supabase metadata, not a real estimate)
   S.estimates=(S.estimates||[]).filter(e=>e.ref!=='_META_');
   S.invoices=(S.invoices||[]).filter(i=>i.ref!=='_META_');
+  // Inject logo (works for trusted device auto-login too)
+  setTimeout(()=>{
+    const sl=document.getElementById('sb-logo');
+    const st=document.getElementById('sb-logo-text');
+    const ls=(document.getElementById('apl-logo-img')||{src:''}).src;
+    if(sl&&ls&&ls.length>100){sl.src=ls;sl.style.display='block';if(st)st.style.display='none';}
+  },100);
   updateBadge();render();
   loadFromSupabase();
   // Poll every 60 seconds for real-time updates (quote views, signs etc)
@@ -1466,7 +1473,6 @@ function rDash(m){
       </div>
     </div>
   </div>`;
-  setTimeout(initWeatherWidget,400);
   setTimeout(loadWeather,300);
 }
 
