@@ -1189,42 +1189,43 @@ function rDash(m){
   const tm=now.getMonth();const ty=now.getFullYear();
   const aInvs=(S.invoices||[]).filter(i=>i.status!=='PAID');
   const odInvs=aInvs.filter(i=>isOD(i));
-  const outstanding=aInvs.reduce((s,i)=>s+tot(i.lineItems),0);
-  const paidMo=(S.invoices||[]).filter(i=>i.status==='PAID'&&new Date(i.date).getMonth()===tm).reduce((s,i)=>s+tot(i.lineItems),0);
+  const outstanding=aInvs.reduce((s,i)=>s+calcGrandTotal(i),0);
+  const paidMo=(S.invoices||[]).filter(i=>i.status==='PAID'&&new Date(i.date).getMonth()===tm).reduce((s,i)=>s+calcGrandTotal(i),0);
   const pEsts=(S.estimates||[]).filter(e=>e.status==='PENDING').length;
   const tEsts=(S.estimates||[]).length;
   const aEsts=(S.estimates||[]).filter(e=>e.status==='APPROVED').length;
   const cr=tEsts>0?Math.round((aEsts/tEsts)*100):0;
   const uc=unread();
-  const recentAct=(S.activity||[]).slice(0,5);
+  const recentAct=(S.activity||[]).slice(0,4);
+  const recentQuotes=[...(S.estimates||[])].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
   const bars=[];
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     const mo=d.getMonth();const yr=d.getFullYear();
-    const rev=(S.invoices||[]).filter(inv=>inv.status==='PAID'&&new Date(inv.date).getMonth()===mo&&new Date(inv.date).getFullYear()===yr).reduce((s,inv)=>s+tot(inv.lineItems),0);
+    const rev=(S.invoices||[]).filter(inv=>inv.status==='PAID'&&new Date(inv.date).getMonth()===mo&&new Date(inv.date).getFullYear()===yr).reduce((s,inv)=>s+calcGrandTotal(inv),0);
     bars.push({label:mn[mo],rev,cur:i===0});
   }
   const maxBar=Math.max(...bars.map(b=>b.rev),1);
-
-  const sentEsts=(S.estimates||[]).filter(e=>e.emailed&&e.status==='PENDING');
-  const approvedEsts=(S.estimates||[]).filter(e=>e.status==='APPROVED');
-  const unpaidInvs=(S.invoices||[]).filter(i=>i.status!=='PAID');
   const pm=S.privacyMode;
+
+  const statusBadge=s=>{
+    if(s==='APPROVED')return'<span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Approved</span>';
+    if(s==='DECLINED')return'<span style="background:#ffebee;color:#c62828;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Declined</span>';
+    return'<span style="background:#e3f2fd;color:#1565c0;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Pending</span>';
+  };
 
   m.innerHTML=`
   <div class="topbar">
     <div><h1>Dashboard</h1><div style="font-size:11px;color:#888;margin-top:1px;">Good to see you, Iain</div></div>
     <div class="topbar-right">
       <button onclick="S.privacyMode=!S.privacyMode;rDash(document.getElementById('main-area'))"
-        style="background:${pm?'#1a2332':'#f5f5f3'};color:${pm?'#4ade80':'#555'};border:1px solid ${pm?'#276749':'#ddd'};padding:6px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:5px;"
-        title="Privacy Mode">
+        style="background:${pm?'#1a2332':'#f5f5f3'};color:${pm?'#4ade80':'#555'};border:1px solid ${pm?'#276749':'#ddd'};padding:6px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:5px;">
         ${pm?'🔒':'👁'} ${pm?'Private':'Privacy'}
       </button>
       <div class="bell-btn" onclick="nav('activity')" title="Activity">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         ${uc>0?`<div class="bell-dot" style="display:block;"></div>`:''}
       </div>
-      <button class="bg" onclick="openNE()">+ New Estimate</button>
     </div>
   </div>
   <div class="content">
@@ -1235,69 +1236,43 @@ function rDash(m){
       <button class="bs" onclick="nav('invoices')" style="font-size:12px;padding:5px 10px;">View All</button>
     </div>`:''}
 
-    <div class="metric-grid">
-      <div class="metric" onclick="nav('invoices')">
+    <div class="metric-grid" style="margin-bottom:16px;">
+      <div class="metric" onclick="nav('invoices')" style="border-top:3px solid #ef4444;">
+        <div style="font-size:22px;margin-bottom:4px;">💰</div>
         <div class="metric-label">Outstanding</div>
-        <div class="metric-val" style="color:#c62828;filter:${pm?'blur(8px)':'none'};transition:filter 0.3s;">${fmt(outstanding)}</div>
+        <div class="metric-val" style="color:#c62828;font-size:22px;filter:${pm?'blur(8px)':'none'}">${fmt(outstanding)}</div>
         <div class="metric-sub">${aInvs.length} active invoice${aInvs.length!==1?'s':''}</div>
       </div>
-      <div class="metric" onclick="nav('invoices')">
+      <div class="metric" onclick="nav('invoices')" style="border-top:3px solid #276749;">
+        <div style="font-size:22px;margin-bottom:4px;">✅</div>
         <div class="metric-label">Paid This Month</div>
-        <div class="metric-val" style="color:#276749;filter:${pm?'blur(8px)':'none'};transition:filter 0.3s;">${fmt(paidMo)}</div>
+        <div class="metric-val" style="color:#276749;font-size:22px;filter:${pm?'blur(8px)':'none'}">${fmt(paidMo)}</div>
         <div class="metric-sub">${mn[tm]} ${ty}</div>
       </div>
-      <div class="metric" onclick="nav('estimates')">
+      <div class="metric" onclick="nav('estimates')" style="border-top:3px solid #1565c0;">
+        <div style="font-size:22px;margin-bottom:4px;">📋</div>
         <div class="metric-label">Pending Quotes</div>
-        <div class="metric-val">${pEsts}</div>
+        <div class="metric-val" style="font-size:22px;">${pEsts}</div>
         <div class="metric-sub">awaiting response</div>
       </div>
-      <div class="metric">
+      <div class="metric" style="border-top:3px solid #6d28d9;">
+        <div style="font-size:22px;margin-bottom:4px;">🎯</div>
         <div class="metric-label">Conversion Rate</div>
-        <div class="metric-val">${cr}%</div>
+        <div class="metric-val" style="font-size:22px;">${cr}%</div>
         <div class="metric-sub">${aEsts} of ${tEsts} quotes won</div>
       </div>
     </div>
 
-    <!-- Status Tracking Panel -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
-      <div style="background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:12px 14px;cursor:pointer;" onclick="S.stab='PENDING';nav('estimates')">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div style="font-size:10px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:0.5px;">📧 Sent</div>
-          <span style="background:#e3f2fd;color:#1565c0;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;">${sentEsts.length}</span>
-        </div>
-        ${sentEsts.slice(0,3).map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f3;">
-          <span style="font-size:12px;font-weight:500;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">${e.clientName}</span>
-          <span style="font-size:11px;font-weight:600;color:#555;filter:${pm?'blur(6px)':'none'};flex-shrink:0;">${fmt(calcGrandTotal(e))}</span>
-        </div>`).join('')}
-        ${sentEsts.length===0?`<div style="font-size:11px;color:#888;text-align:center;padding:8px 0;">No sent quotes</div>`:''}
-        ${sentEsts.length>3?`<div style="font-size:11px;color:#1565c0;text-align:center;margin-top:4px;">+${sentEsts.length-3} more</div>`:''}
-      </div>
-
-      <div style="background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:12px 14px;cursor:pointer;" onclick="S.stab='APPROVED';nav('estimates')">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;">✅ Approved</div>
-          <span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;">${approvedEsts.length}</span>
-        </div>
-        ${approvedEsts.slice(0,3).map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f3;">
-          <span style="font-size:12px;font-weight:500;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">${e.clientName}</span>
-          <span style="font-size:11px;font-weight:600;color:#276749;filter:${pm?'blur(6px)':'none'};flex-shrink:0;">${fmt(calcGrandTotal(e))}</span>
-        </div>`).join('')}
-        ${approvedEsts.length===0?`<div style="font-size:11px;color:#888;text-align:center;padding:8px 0;">No approved quotes</div>`:''}
-        ${approvedEsts.length>3?`<div style="font-size:11px;color:#276749;text-align:center;margin-top:4px;">+${approvedEsts.length-3} more</div>`:''}
-      </div>
-
-      <div style="background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:12px 14px;cursor:pointer;" onclick="nav('invoices')">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <div style="font-size:10px;font-weight:700;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;">💳 Unpaid</div>
-          <span style="background:#ffebee;color:#c62828;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;">${unpaidInvs.length}</span>
-        </div>
-        ${unpaidInvs.slice(0,3).map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f5f5f3;">
-          <span style="font-size:12px;font-weight:500;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">${e.clientName}</span>
-          <span style="font-size:11px;font-weight:600;color:#c62828;filter:${pm?'blur(6px)':'none'};flex-shrink:0;">${fmt(tot(e.lineItems))}</span>
-        </div>`).join('')}
-        ${unpaidInvs.length===0?`<div style="font-size:11px;color:#888;text-align:center;padding:8px 0;">All invoices paid 🎉</div>`:''}
-        ${unpaidInvs.length>3?`<div style="font-size:11px;color:#c62828;text-align:center;margin-top:4px;">+${unpaidInvs.length-3} more</div>`:''}
-      </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+      <button onclick="openNE()" style="background:linear-gradient(135deg,#276749,#38a169);color:#fff;border:none;border-radius:12px;padding:18px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(39,103,73,0.3);">
+        <span style="font-size:28px;">✏️</span>New Quote
+      </button>
+      <button onclick="nav('estimates')" style="background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;border:none;border-radius:12px;padding:18px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(21,101,192,0.3);">
+        <span style="font-size:28px;">📋</span>Estimates
+      </button>
+      <button onclick="nav('invoices')" style="background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;border:none;border-radius:12px;padding:18px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:14px;font-weight:700;box-shadow:0 4px 12px rgba(109,40,217,0.3);">
+        <span style="font-size:28px;">📄</span>Invoices
+      </button>
     </div>
 
     <div class="dash-grid">
@@ -1308,34 +1283,51 @@ function rDash(m){
         </div>
         <div class="bar-chart" style="filter:${pm?'blur(6px)':'none'};transition:filter 0.3s;">
           ${bars.map(b=>{const h=b.rev>0?Math.max(Math.round((b.rev/maxBar)*80),4):3;return`<div class="bar-col">
-            <div class="bar-val">${b.rev>0?'£'+Math.round(b.rev/1000)+'k':''}</div>
-            <div class="bar" style="height:${h}px;background:${b.cur?'#276749':'#a8d5b5'};"></div>
-            <div class="bar-lbl" style="color:${b.cur?'#276749':'#888'};font-weight:${b.cur?600:400};">${b.label}</div>
-          </div>`;}).join('')}
+            <div style="font-size:9px;color:#888;margin-bottom:2px;filter:${pm?'blur(4px)':'none'}">${b.rev>0?'£'+Math.round(b.rev/1000)+'k':''}</div>
+            <div style="height:${h}px;width:28px;background:${b.cur?'#276749':'#a7d9b8'};border-radius:4px 4px 0 0;"></div>
+            <div style="font-size:10px;color:${b.cur?'#276749':'#888'};font-weight:${b.cur?'700':'400'}">${b.label}</div>
+          </div>`}).join('')}
         </div>
-        ${bars.every(b=>b.rev===0)?`<div style="font-size:12px;color:#888;text-align:center;margin-top:10px;">Mark invoices as paid to see revenue</div>`:''}
+        ${bars.every(b=>b.rev===0)?`<div style="font-size:12px;color:#888;text-align:center;padding:10px 0;">Mark invoices as paid to see revenue</div>`:''}
       </div>
+
       <div class="dash-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div class="dash-card-title" style="margin:0;">Recent Activity</div>
-          ${uc>0?`<span style="font-size:11px;color:#276749;cursor:pointer;font-weight:600;" onclick="nav('activity')">${uc} new →</span>`:''}
+        <div class="dash-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          Recent Quotes
+          <span onclick="nav('estimates')" style="font-size:12px;color:#276749;font-weight:600;cursor:pointer;">View all →</span>
         </div>
-        ${recentAct.length===0?`<div style="font-size:12px;color:#888;text-align:center;padding:20px 0;">No activity yet. Create and email an estimate.</div>`:
-          recentAct.map(a=>`<div class="act-item">
-            <div class="act-icon" style="background:${actBg(a.type)};font-size:16px;">${actEmoji(a.type)}</div>
-            <div style="flex:1;min-width:0;">
-              <div class="act-text">${actText(a)}</div>
-              <div class="act-time">${ftime(a.time)}</div>
-            </div>
-            ${!a.read?'<div class="unread-dot"></div>':''}
-          </div>`).join('')}
-        ${recentAct.length>0?`<div style="text-align:center;padding-top:8px;"><span style="font-size:12px;color:#276749;cursor:pointer;font-weight:500;" onclick="nav('activity')">View all activity</span></div>`:''}
+        ${recentQuotes.length===0?`<div style="font-size:13px;color:#888;text-align:center;padding:20px 0;">No quotes yet</div>`:''}
+        ${recentQuotes.map(e=>`<div onclick="S.previewRef='${e.ref}';S.view='estimates';render()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0ed;cursor:pointer;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.clientName||'No client'}</div>
+            <div style="font-size:11px;color:#888;margin-top:2px;">${e.ref} · ${e.date?new Date(e.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:10px;">
+            <div style="font-size:13px;font-weight:700;color:#276749;filter:${pm?'blur(6px)':'none'}">${fmt(calcGrandTotal(e))}</div>
+            ${statusBadge(e.status)}
+          </div>
+        </div>`).join('')}
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          Recent Activity
+          <span onclick="nav('activity')" style="font-size:12px;color:#276749;font-weight:600;cursor:pointer;">View all →</span>
+        </div>
+        ${recentAct.length===0?`<div style="font-size:13px;color:#888;text-align:center;padding:20px 0;">No activity yet. Create and email an estimate.</div>`:''}
+        ${recentAct.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0ed;">
+          <div style="width:36px;height:36px;border-radius:50%;background:${actBg(a.type)};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${actEmoji(a.type)}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${actText(a)}</div>
+            <div style="font-size:11px;color:#888;margin-top:1px;">${a.time?new Date(a.time).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):''}</div>
+          </div>
+        </div>`).join('')}
       </div>
     </div>
   </div>`;
 }
 
-// --- Activity -----------------------------------------------------------------
+
 function actEmoji(t){return{emailed:'📧',opened:'📬',viewed:'👁',created:'📋',converted:'🔄',paid:'✅',signed:'✍️'}[t]||'📋';}
 function actBg(t){return{emailed:'#e3f2fd',opened:'#dcfce7',viewed:'#dcfce7',created:'#f3f4f6',converted:'#f5f3ff',paid:'#dcfce7',signed:'#f0faf4'}[t]||'#f3f4f6';}
 function actText(a){
