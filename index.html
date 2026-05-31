@@ -232,9 +232,9 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .modal{background:#fff;border-radius:12px;width:720px;max-height:630px;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
 .modal-top{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e5e0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;}
 .modal-top h2{font-size:15px;font-weight:600;}
-.modal-body{padding:16px;}
+.modal-body{padding:20px;}
 .modal-tabs{display:flex;border-bottom:1px solid #e5e5e0;margin-bottom:14px;}
-.modal-tab{padding:8px 14px;font-size:12px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.modal-tab{padding:12px 18px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
 .modal-tab.active{color:#276749;border-bottom-color:#276749;}
 .fl{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
 .fl label{font-size:11px;color:#888;font-weight:500;}
@@ -246,20 +246,20 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .lir:hover{background:#f9f9f7;}
 .li{padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#fff;color:#111;width:100%;}
 .li:focus{outline:none;border-color:#276749;}
-.add-line-btn{border:1.5px dashed #276749;border-radius:7px;padding:10px;width:100%;text-align:center;color:#276749;font-size:13px;cursor:pointer;margin-top:8px;background:transparent;font-weight:500;}
+.add-line-btn{border:2px dashed #276749;border-radius:10px;padding:18px;width:100%;text-align:center;color:#276749;font-size:16px;font-weight:600;cursor:pointer;background:transparent;margin-top:10px;min-height:60px;}
 .add-line-btn:hover{background:#f0faf4;}
-.items-picker{border:1px solid #ddd;border-radius:7px;padding:8px;margin-top:8px;max-height:150px;overflow-y:auto;}
-.item-row{padding:6px 8px;border-radius:5px;cursor:pointer;font-size:12px;color:#111;}
+.items-picker{border:1px solid #276749;border-radius:10px;padding:8px;margin-top:8px;max-height:320px;overflow-y:auto;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.12);}
+.item-row{padding:14px 12px;border-radius:5px;cursor:pointer;font-size:15px;color:#111;border-bottom:1px solid #f0f0ed;}
 .item-row:hover{background:#f0faf4;color:#276749;}
 .ta{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;color:#111;resize:vertical;min-height:55px;font-family:inherit;}
 .ta:focus{outline:none;border-color:#276749;}
 .totals-box{width:220px;}
 .tl{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#555;}
 .tl.grand{font-weight:700;font-size:15px;color:#111;border-top:1px solid #e5e5e0;padding-top:8px;margin-top:4px;}
-.client-box{border:1.5px dashed #276749;border-radius:9px;padding:10px;cursor:pointer;min-height:68px;display:flex;align-items:center;}
+.client-box{border:2px dashed #276749;border-radius:10px;padding:14px;cursor:pointer;min-height:80px;display:flex;align-items:center;background:#fafff9;}
 .client-box:hover{background:#f0faf4;}
-.csb{border:1px solid #ddd;border-radius:7px;max-height:160px;overflow-y:auto;margin-top:6px;}
-.csr{padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0ed;}
+.csb{border:1px solid #276749;border-radius:10px;max-height:280px;overflow-y:auto;margin-top:8px;box-shadow:0 4px 16px rgba(0,0,0,0.10);}
+.csr{padding:14px 16px;cursor:pointer;font-size:15px;border-bottom:1px solid #f0f0ed;}
 .csr:last-child{border-bottom:none;}
 .csr:hover{background:#f9f9f7;}
 .priv-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;}
@@ -1511,15 +1511,15 @@ function showEstModal(){
           <label style="font-size:11px;color:#888;font-weight:500;">Client</label>
           <div class="client-box" onclick="toggleCS()">
             ${ne.clientName?`<div style="width:100%;">
-              <div style="font-weight:600;font-size:14px;">${ne.clientName}</div>
-              <div style="font-size:12px;color:#888;margin-top:2px;">${ne.serviceAddress||ne.address||''}</div>
-              <div style="font-size:12px;color:#888;">${ne.mobile||ne.phone||''} ${ne.email?'· '+ne.email:''}</div>
+              <div style="font-weight:700;font-size:16px;">${ne.clientName}</div>
+              <div style="font-size:13px;color:#666;margin-top:3px;">${ne.serviceAddress||ne.address||''}</div>
+              <div style="font-size:13px;color:#666;">${ne.mobile||ne.phone||''} ${ne.email?'· '+ne.email:''}</div>
               <div style="display:flex;gap:8px;margin-top:4px;">
                 <span style="font-size:11px;color:#276749;font-weight:500;">Tap to change client</span>
                 <span style="font-size:11px;color:#888;">|</span>
                 <span style="font-size:11px;color:#276749;font-weight:500;cursor:pointer;" onclick="event.stopPropagation();S.editClientDetails=!S.editClientDetails;showEstModal()">Edit details</span>
               </div></div>`
-            :`<span style="color:#276749;font-size:13px;font-weight:500;margin:auto;">+ Add Client</span>`}
+            :`<div style="text-align:center;width:100%;"><div style="font-size:22px;margin-bottom:4px;">👤</div><div style="color:#276749;font-size:16px;font-weight:600;">+ Add Client</div></div>`}
           </div>
           ${S.editClientDetails&&ne.clientName?`<div style="margin-top:8px;padding:10px;background:#f9f9f7;border-radius:8px;border:1px solid #e5e5e0;">
             <div style="font-size:11px;font-weight:600;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Edit Quote Address and Contact</div>
@@ -1531,7 +1531,7 @@ function showEstModal(){
               <div><label style="font-size:11px;color:#888;">Email</label><input class="fi" value="${ne.email||''}" placeholder="Email address" oninput="S.ne.email=this.value"></div>
             </div>
           </div>`:''}\n          ${S.showCS?`<div style="margin-top:6px;">
-            <input class="si" placeholder="Search existing clients or type new name..." autocapitalize="words" value="${S.cs||''}" oninput="S.cs=this.value;showEstModal()">
+            <input class="si" placeholder="Search existing clients or type new name..." autocapitalize="words" value="${S.cs||''}" oninput="S.cs=this.value;showEstModal()" style="height:48px;font-size:15px;padding:0 14px;">
             <div class="csb">
               ${mc.map(c=>`<div class="csr" onclick="pickClient('${encodeURIComponent(JSON.stringify(c))}')">${c.name}<span style="font-size:11px;color:#888;"> — ${c.serviceAddress||c.address||''}</span></div>`).join('')}
               <div class="csr" style="color:#276749;font-weight:600;" onclick="openNewClientForm()">+ New client: "${S.cs||'New Client'}"</div>
@@ -1548,21 +1548,25 @@ function showEstModal(){
       ${ne.lineItems.map((li,i)=>`<div class="lir" style="flex-direction:column;align-items:stretch;padding:10px;gap:6px;">
         <div style="display:flex;align-items:flex-start;gap:8px;">
           <div style="flex:1;">
-            <input class="fi" value="${li.name}" oninput="S.ne.lineItems[${i}].name=this.value" placeholder="Item name" style="font-weight:600;font-size:13px;margin-bottom:4px;">
-            <textarea class="ta" oninput="S.ne.lineItems[${i}].desc=this.value" placeholder="Description (optional)" style="min-height:36px;font-size:11px;color:#666;resize:vertical;">${li.desc||''}</textarea>
+            <input class="fi" value="${li.name}" oninput="S.ne.lineItems[${i}].name=this.value" placeholder="Item name" style="font-weight:600;font-size:15px;margin-bottom:6px;height:44px;">
+            <textarea class="ta" oninput="S.ne.lineItems[${i}].desc=this.value" placeholder="Description (optional)" style="min-height:50px;font-size:13px;color:#555;resize:vertical;line-height:1.5;">${li.desc||''}</textarea>
           </div>
-          <span style="cursor:pointer;color:#ccc;font-size:20px;" onclick="rmLI(${i})">×</span>
+          <button onclick="rmLI(${i})" style="background:transparent;border:1px solid #fecdd3;border-radius:6px;color:#c62828;font-size:18px;width:40px;height:40px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">×</button>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <label style="font-size:11px;color:#888;">Rate £</label>
-          <input class="li" type="number" inputmode="decimal" value="${li.rate}" onchange="updLI(${i},'rate',this.value)" style="width:80px;">
-          <label style="font-size:11px;color:#888;">Qty</label>
-          <input class="li" type="number" inputmode="decimal" value="${li.qty}" onchange="updLI(${i},'qty',this.value)" style="width:50px;">
-          <span style="font-size:12px;font-weight:600;color:#276749;margin-left:auto;">${fmt(li.rate*li.qty)}</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:12px;color:#888;font-weight:500;">Rate £</label>
+            <input class="li" type="number" inputmode="decimal" value="${li.rate}" onchange="updLI(${i},'rate',this.value)" style="width:100px;height:44px;font-size:15px;padding:0 10px;">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:12px;color:#888;font-weight:500;">Qty</label>
+            <input class="li" type="number" inputmode="decimal" value="${li.qty}" onchange="updLI(${i},'qty',this.value)" style="width:64px;height:44px;font-size:15px;padding:0 10px;">
+          </div>
+          <span style="font-size:15px;font-weight:700;color:#276749;margin-left:auto;">${fmt(li.rate*li.qty)}</span>
         </div>
       </div>`).join('')}
       <button class="add-line-btn" onclick="togglePicker()">+ Add Line Item</button>
-      ${S.picker?`<div class="items-picker"><input class="si" style="margin-bottom:6px;" placeholder="Search items..." oninput="filterPicker(this.value)"><div id="picker-list">${(S.customItems||[]).map((it,i)=>`<div class="item-row" onclick="addLI2(${i})">${it.name}</div>`).join('')}</div></div>`:''}
+      ${S.picker?`<div class="items-picker"><input class="si" style="margin-bottom:8px;height:48px;font-size:15px;padding:0 14px;" placeholder="Search items..." oninput="filterPicker(this.value)"><div id="picker-list">${(S.customItems||[]).map((it,i)=>`<div class="item-row" onclick="addLI2(${i})">${it.name}</div>`).join('')}</div></div>`:''}
 
       <div style="display:flex;justify-content:flex-end;margin-top:14px;">
         <div style="width:280px;">
