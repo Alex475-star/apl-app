@@ -1566,7 +1566,7 @@ function showEstModal(){
         </div>
       </div>`).join('')}
       <button class="add-line-btn" onclick="togglePicker()">+ Add Line Item</button>
-      ${S.picker?`<div class="items-picker"><input class="si" style="margin-bottom:8px;height:48px;font-size:15px;padding:0 14px;" placeholder="Search items..." oninput="filterPicker(this.value)"><div id="picker-list">${(S.customItems||[]).map((it,i)=>`<div class="item-row" onclick="addLI2(${i})">${it.name}</div>`).join('')}</div></div>`:''}
+      ${S.picker?`<div class="items-picker"><input class="si" style="margin-bottom:8px;height:48px;font-size:15px;padding:0 14px;" placeholder="Search items..." oninput="filterPicker(this.value)"><div id="picker-list">${(S.customItems||[]).map((it,i)=>`<div class="item-row" onclick="addLI2(${i})">${it.name}</div>`).join('')}<div class="item-row" onclick="addBlankLI()" style="color:#276749;font-weight:600;border-top:2px solid #e5e5e0;margin-top:4px;padding-top:14px;">+ Add new item</div></div></div>`:''}
 
       <div style="display:flex;justify-content:flex-end;margin-top:14px;">
         <div style="width:280px;">
@@ -1845,6 +1845,7 @@ function togglePicker(){S.picker=!S.picker;showEstModal();}
 function filterPicker(q){document.querySelectorAll('#picker-list .item-row').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
 function addLI(i){const it=ITEMS[i];S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
 function addLI2(i){const combined=(S.customItems||[]);const it=combined[i];if(!it)return;S.ne.lineItems.push({name:it.name,desc:it.desc,rate:it.rate||0,qty:1,tax:'none'});S.picker=false;showEstModal();}
+function addBlankLI(){S.ne.lineItems.push({name:'',desc:'',rate:0,qty:1,tax:'none'});S.picker=false;showEstModal();}
 function rmLI(i){S.ne.lineItems.splice(i,1);showEstModal();}
 function updLI(i,f,v){S.ne.lineItems[i][f]=(f==='rate'||f==='qty')?parseFloat(v)||0:v;showEstModal();}
 function openPhotos(){document.getElementById('photo-input').click();}
