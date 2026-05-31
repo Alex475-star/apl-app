@@ -1184,6 +1184,82 @@ function clearModals(){
 }
 
 // --- Dashboard ---------------------------------------------------------------
+
+// ─── Weather Widget ────────────────────────────────────────────────
+const WMO={0:'Clear',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Foggy',48:'Icy Fog',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',77:'Snow Grains',80:'Light Showers',81:'Showers',82:'Heavy Showers',85:'Snow Showers',86:'Heavy Snow Showers',95:'Thunderstorm',96:'Thunderstorm+Hail',99:'Heavy Thunderstorm'};
+const WMO_ICON={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',77:'🌨️',80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'🌨️',95:'⛈️',96:'⛈️',99:'⛈️'};
+const RAIN_CODES=new Set([51,53,55,61,63,65,80,81,82,95,96,99]);
+
+function getWeather(){
+  const el=document.getElementById('weather-widget');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;color:#888;font-size:12px;padding:16px;">Getting location...</div>';
+  if(!navigator.geolocation){el.innerHTML='<div style="text-align:center;color:#888;font-size:12px;padding:16px;">Location not available</div>';return;}
+  navigator.geolocation.getCurrentPosition(function(pos){
+    const lat=pos.coords.latitude.toFixed(4);
+    const lon=pos.coords.longitude.toFixed(4);
+    el.innerHTML='<div style="text-align:center;color:#888;font-size:12px;padding:16px;">Loading weather...</div>';
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,precipitation&hourly=temperature_2m,weathercode,precipitation_probability,precipitation&forecast_days=1&timezone=Europe/London`)
+      .then(r=>r.json())
+      .then(d=>renderWeather(d,el))
+      .catch(()=>{el.innerHTML='<div style="text-align:center;color:#888;font-size:12px;padding:16px;">Weather unavailable</div>';});
+  },function(){el.innerHTML='<div style="text-align:center;color:#888;font-size:12px;padding:16px;"><div style="margin-bottom:8px;">📍 Location needed for weather</div><button onclick="getWeather()" style="background:#276749;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:12px;cursor:pointer;">Allow Location</button></div>';});
+}
+
+function renderWeather(d,el){
+  const now=new Date();
+  const nowH=now.getHours();
+  const hrs=d.hourly;
+  const cur=d.current;
+  const code=cur.weathercode;
+  const temp=Math.round(cur.temperature_2m);
+  const wind=Math.round(cur.windspeed_10m);
+  // Next 4 hours
+  const curIdx=(hrs.time||[]).findIndex(t=>new Date(t).getHours()===nowH);
+  const next4=[];
+  for(let i=1;i<=4;i++){
+    const idx=curIdx+i;
+    if(idx<hrs.time.length){
+      next4.push({
+        time:new Date(hrs.time[idx]).getHours(),
+        temp:Math.round(hrs.temperature_2m[idx]),
+        code:hrs.weathercode[idx],
+        pop:hrs.precipitation_probability[idx],
+        rain:hrs.precipitation[idx]
+      });
+    }
+  }
+  // Rain warning — heavy rain in next 2 hours
+  const rainSoon=next4.slice(0,2).some(h=>h.pop>=60||RAIN_CODES.has(h.code));
+  const heavyRainSoon=next4.slice(0,2).some(h=>h.pop>=80||[65,82,95,96,99].includes(h.code));
+
+  el.innerHTML=`
+    ${heavyRainSoon?'<div style="background:#c62828;color:#fff;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">⚠️ Heavy rain expected — wrap up works soon!</div>':
+      rainSoon?'<div style="background:#f59e0b;color:#fff;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">🌧️ Rain likely in the next 2 hours</div>':''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-size:42px;line-height:1;">${WMO_ICON[code]||'🌡️'}</div>
+        <div style="font-size:13px;color:#555;margin-top:4px;">${WMO[code]||'Unknown'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:36px;font-weight:700;color:#111;">${temp}°C</div>
+        <div style="font-size:12px;color:#888;">💨 ${wind} km/h</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+      ${next4.map(h=>`<div style="background:#f9f9f7;border-radius:8px;padding:8px 4px;text-align:center;">
+        <div style="font-size:11px;color:#888;font-weight:600;">${h.time}:00</div>
+        <div style="font-size:18px;margin:4px 0;">${WMO_ICON[h.code]||'🌡️'}</div>
+        <div style="font-size:12px;font-weight:700;">${h.temp}°</div>
+        ${h.pop>20?`<div style="font-size:10px;color:${h.pop>=60?'#c62828':'#1565c0'};font-weight:600;">${h.pop}%</div>`:''}
+      </div>`).join('')}
+    </div>
+    <div style="text-align:right;margin-top:8px;">
+      <span onclick="getWeather()" style="font-size:11px;color:#888;cursor:pointer;">🔄 Refresh</span>
+    </div>`;
+}
+// ─────────────────────────────────────────────────────────────────
+
 function rDash(m){
   const now=new Date();const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const tm=now.getMonth();const ty=now.getFullYear();
@@ -1275,7 +1351,7 @@ function rDash(m){
       </button>
     </div>
 
-    <div class="dash-grid">
+    <div id="weather-widget" style="background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:16px;margin-bottom:16px;"></div><script>setTimeout(getWeather,100);</script><div class="dash-grid">
       <div class="dash-card">
         <div class="dash-card-title" style="display:flex;justify-content:space-between;align-items:center;">
           Revenue — last 6 months
