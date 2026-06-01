@@ -1536,6 +1536,7 @@ function rEst(m){
 function showEstModal(){
   clearModals();
   const ne=S.ne;
+  const isInv=!!(ne&&ne.ref&&ne.ref.includes('invoice'));
   const sub=tot(ne.lineItems);const vat=ne.vat?sub*0.2:0;const total=sub+vat;
   const mc=S.clients.filter(c=>!S.cs||(c.name||'').toLowerCase().includes((S.cs||'').toLowerCase())).slice(0,8);
   const photos=ne.photos||[];
