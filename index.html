@@ -3189,7 +3189,7 @@ async function clearAllData(){
   if(!confirm('Last chance — this cannot be undone. Continue?'))return;
   const trusted=localStorage.getItem('apl_trusted');
   const authPersist=localStorage.getItem('apl_auth_persist');
-  S.estimates=[];S.invoices=[];S.clients=[];S.activity=[];// Keep counters to avoid ref collisions with old Supabase data
+  S.estimates=[];S.invoices=[];S.clients=[];S.activity=[];
   // Delete from Supabase
   try{
     const headers={'Content-Type':'application/json','apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON};
@@ -3199,7 +3199,9 @@ async function clearAllData(){
   saveData();
   if(trusted)localStorage.setItem('apl_trusted',trusted);
   if(authPersist)localStorage.setItem('apl_auth_persist',authPersist);
-  toast('All data cleared','#c62828');render();
+  toast('All data cleared','#c62828');
+  // Navigate to dashboard so cleared state is immediately visible
+  S.view='dashboard';S.previewRef=null;render();
 }
 function clearActivity(){
   if(!confirm('Clear the entire activity log?'))return;
