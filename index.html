@@ -139,6 +139,11 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .si{padding:8px 12px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fff;color:#111;width:100%;}
 .si:focus{outline:none;border-color:#276749;}
 .list-box{background:#fff;border:1px solid #e5e5e0;border-radius:10px;overflow:hidden;margin-bottom:18px;}
+.row-wrap{position:relative;overflow:hidden;border-radius:8px;margin-bottom:1px;}
+.row-del-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:#c62828;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;border-radius:0 8px 8px 0;}
+.row-content{position:relative;background:#fff;transition:transform 0.18s ease;will-change:transform;}
+.row-hover-del{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:#ffebee;border:1px solid #fecdd3;color:#c62828;border-radius:6px;padding:5px 10px;font-size:13px;cursor:pointer;opacity:0;transition:opacity 0.15s;pointer-events:none;}
+.row-content:hover .row-hover-del{opacity:1;pointer-events:auto;}
 .list-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f0f0ed;cursor:pointer;transition:background 0.1s;}
 .list-row:last-child{border-bottom:none;}
 .list-row:hover{background:#f9f9f7;}
@@ -1512,7 +1517,11 @@ function rEst(m){
       Object.entries(g).map(([mo,items])=>`<div style="margin-bottom:18px;">
         <div class="month-row"><span class="month-label">${mo}</span></div>
         <div class="list-box">
-          ${items.map(e=>{const vs=viewScore(e);return`<div class="list-row" onclick="editE('${e.ref}')">
+          ${items.map(e=>{const vs=viewScore(e);return`<div class="row-wrap">
+            <div class="row-del-bg" onclick="deleteDoc('${e.ref}','est')">🗑️</div>
+            <div class="row-content">
+            <div class="list-row" style="position:relative;" onclick="editE('${e.ref}')">
+            <button class="row-hover-del" onclick="event.stopPropagation();deleteDoc('${e.ref}','est')">🗑</button>
             <div style="flex:1;min-width:0;">
               <div class="list-name">${e.clientName}</div>
               <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;">
@@ -1525,7 +1534,7 @@ function rEst(m){
               ${emailIco(e)}
               <div class="list-amt">${fmt(calcGrandTotal(e))}</div>
             </div>
-          </div>`;}).join('')}
+          </div></div></div>`;}).join('')}
         </div>
       </div>`).join('')}
   </div>`;
@@ -2159,6 +2168,8 @@ function convertToInv(ref){
 }
 
 // --- Invoices -----------------------------------------------------------------
+  setTimeout(initSwipeDelete,100);
+
 function rInv(m){
   const tab=S.itab||'ACTIVE';
   const q=(S.iq||'').toLowerCase();
@@ -2169,7 +2180,7 @@ function rInv(m){
   });
   const g=grpByMonth(fl);
   m.innerHTML=`
-  <div class="topbar"><h1>Invoices</h1><button class="bs">Export</button></div>
+  <div class="topbar"><h1>Invoices</h1><div style="display:flex;gap:8px;"><button class="bs">Export</button><button class="bg" onclick="openNewInv()">+ New Invoice</button></div></div>
   <div class="tabs">${['ACTIVE','PAID'].map(t=>`<div class="tab ${tab===t?'active':''}" onclick="S.itab='${t}';rInv(document.getElementById('main-area'))">${t}</div>`).join('')}</div>
   <div class="content">
     <div style="margin-bottom:12px;"><input class="si" placeholder="Search invoices..." value="${S.iq||''}" oninput="S.iq=this.value;rInv(document.getElementById('main-area'))"></div>
@@ -2177,27 +2188,33 @@ function rInv(m){
       Object.entries(g).map(([mo,items])=>`<div style="margin-bottom:18px;">
         <div class="month-row"><span class="month-label">${mo}</span><span class="month-total">${fmt(items.reduce((s,e)=>s+tot(e.lineItems),0))}</span></div>
         <div class="list-box">
-          ${items.map(e=>`<div class="list-row" style="flex-direction:column;align-items:stretch;gap:0;" onclick="">
+          ${items.map(e=>`<div class="row-wrap">
+            <div class="row-del-bg" onclick="deleteDoc('${e.ref}','inv')">🗑️</div>
+            <div class="row-content">
+            <div class="list-row" style="flex-direction:column;align-items:stretch;gap:0;position:relative;" onclick="">
             <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="showPreview('${e.ref}')">
               <div style="flex:1;min-width:0;">
                 <div class="list-name">${e.clientName}</div>
                 <div class="list-sub">${fdShort(e.date)} · #${e.ref}</div>
               </div>
-              <div class="list-right">
+              <div class="list-right" style="padding-right:36px;">
                 ${emailIco(e)}
                 <div class="list-amt">${fmt(calcGrandTotal(e))}</div>
                 <span class="bdg ${e.status==='PAID'?'b-paid':isOD(e)?'b-overdue':'b-active'}">${e.status==='PAID'?'PAID':isOD(e)?'OVERDUE':'ACTIVE'}</span>
               </div>
             </div>
+            <button class="row-hover-del" onclick="event.stopPropagation();deleteDoc('${e.ref}','inv')">🗑</button>
             ${e.status==='PAID'&&!e.reviewSent?`<div style="padding:8px 0 2px;">
               <button onclick="event.stopPropagation();sendReviewLink('${e.ref}')" style="width:100%;padding:8px 12px;background:#f0faf4;border:1px solid #a7f3d0;border-radius:7px;color:#276749;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
                 ⭐ Send Review Link to ${e.clientName}
               </button>
             </div>`:e.status==='PAID'&&e.reviewSent?`<div style="padding:6px 0 2px;font-size:11px;color:#888;text-align:center;">✅ Review link sent</div>`:''}
-          </div>`).join('')}
+          </div></div></div>`).join('')}
         </div>
       </div>`).join('')}
   </div>`;}
+  setTimeout(initSwipeDelete,100);
+
 
 async function markPaid(ref){
   const inv=S.invoices.find(i=>i.ref===ref);
@@ -2243,6 +2260,58 @@ async function sendReviewLink(ref){
     toast('Failed to send — check email address','#c62828');
   }
 }
+function openNewInv(){
+  const today=new Date().toISOString().split('T')[0];
+  S.ne={ref:'aplinvoice'+S.nextI,date:new Date().toISOString(),dateInput:today,
+    clientName:'',address:'',serviceAddress:'',phone:'',mobile:'',email:'',
+    lineItems:[],notes:'',privateNotes:'',photos:[],
+    vat:S.co.defaultVat||false,status:'ACTIVE',isNew:true,guarantee:false,
+    markupVal:0,markupType:'pct',discountVal:0,discountType:'pct',depositVal:0,depositType:'pct'};
+  S.picker=false;S.showCS=false;S.modalTab='details';S.previewRef=null;
+  render();showEstModal();
+}
+
+async function deleteDoc(ref,type){
+  const label=type==='inv'?'invoice':'quote';
+  if(!confirm('Delete this '+label+'? This cannot be undone.'))return;
+  if(type==='inv'){
+    S.invoices=S.invoices.filter(i=>i.ref!==ref);
+    try{const h={'apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON};await fetch(SUPA_URL+'/rest/v1/invoices?ref=eq.'+ref,{method:'DELETE',headers:h});}catch(e){}
+  }else{
+    S.estimates=S.estimates.filter(e=>e.ref!==ref);
+    try{const h={'apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON};await fetch(SUPA_URL+'/rest/v1/estimates?ref=eq.'+ref,{method:'DELETE',headers:h});}catch(e){}
+  }
+  saveData();render();toast(label.charAt(0).toUpperCase()+label.slice(1)+' deleted');
+}
+
+function initSwipeDelete(){
+  document.querySelectorAll('.row-wrap').forEach(function(wrap){
+    var content=wrap.querySelector('.row-content');
+    if(!content)return;
+    var startX,startY,swiping=false;
+    content.addEventListener('touchstart',function(e){
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;swiping=true;
+    },{passive:true});
+    content.addEventListener('touchmove',function(e){
+      if(!swiping)return;
+      var dx=e.touches[0].clientX-startX;
+      var dy=e.touches[0].clientY-startY;
+      if(Math.abs(dy)>Math.abs(dx)+5){swiping=false;content.style.transform='';return;}
+      if(dx<0)content.style.transform='translateX('+Math.max(dx,-80)+'px)';
+    },{passive:true});
+    content.addEventListener('touchend',function(e){
+      if(!swiping)return;swiping=false;
+      var dx=e.changedTouches[0].clientX-startX;
+      if(dx<-60){
+        content.style.transform='translateX(-80px)';
+        document.addEventListener('touchstart',function close(ev){
+          if(!wrap.contains(ev.target)){content.style.transform='';document.removeEventListener('touchstart',close);}
+        });
+      }else{content.style.transform='';}
+    });
+  });
+}
+
 function showPreview(ref){S.previewRef=ref;render();}
 
 // --- Invoice/Estimate Preview -------------------------------------------------
