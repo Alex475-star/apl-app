@@ -1759,12 +1759,12 @@ function initSigPad(){
 }
 
 function clearSig(){
-  const canvas=document.getElementById('cust-sig-canvas');
+  const canvas=document.getElementById('sig-canvas');
   if(canvas&&sigCtx)sigCtx.clearRect(0,0,canvas.width,canvas.height);
 }
 
 function saveSig(){
-  const canvas=document.getElementById('cust-sig-canvas');
+  const canvas=document.getElementById('sig-canvas');
   if(!canvas)return;
   const blank=document.createElement('canvas');blank.width=canvas.width;blank.height=canvas.height;
   if(canvas.toDataURL()===blank.toDataURL()){alert('Please sign before saving.');return;}
