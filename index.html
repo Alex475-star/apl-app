@@ -1979,18 +1979,20 @@ function editE(ref){
   const e=S.estimates.find(x=>x.ref===ref);if(!e)return;
   S.ne=JSON.parse(JSON.stringify(e));S.ne.isNew=false;
   if(!S.ne.photos)S.ne.photos=[];
-  S.picker=false;S.showCS=false;S.modal='ne';S.modalTab='details';
+  S.picker=false;S.showCS=false;S.modalTab='details';
   S.previewRef=null;
   render();
+  showEstModal();
 }
 function editI(ref){
   const inv=S.invoices.find(x=>x.ref===ref);if(!inv)return;
   S.ne=JSON.parse(JSON.stringify(inv));S.ne.isNew=false;
   if(!S.ne.photos)S.ne.photos=[];
   if(!S.ne.dateInput)S.ne.dateInput=S.ne.date?S.ne.date.substring(0,10):new Date().toISOString().substring(0,10);
-  S.picker=false;S.showCS=false;S.modal='ne';S.modalTab='details';
+  S.picker=false;S.showCS=false;S.modalTab='details';
   S.previewRef=null;
   render();
+  showEstModal();
 }
 function saveInv(){
   const ne=S.ne;
