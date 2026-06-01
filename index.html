@@ -1592,7 +1592,7 @@ function showEstModal(){
         <div style="width:190px;display:flex;flex-direction:column;gap:8px;">
           <div class="fl"><label>Estimate #</label><input class="fi" value="${ne.ref}" readonly></div>
           <div class="fl"><label>Date</label><input class="fi" type="date" value="${ne.dateInput}" onchange="S.ne.dateInput=this.value"></div>
-          <div class="fl"><label>Valid until (90 days)</label><input class="fi" value="${ne.expiryDate}" readonly></div>
+          ${isInv?'':`<div class="fl"><label>Valid until (90 days)</label><input class="fi" value="${ne.expiryDate}" readonly></div>`}
         </div>
       </div>
       <div class="lih"><span>Description</span><span>Rate (£)</span><span>Qty</span><span>Total</span><span></span></div>
@@ -2656,6 +2656,7 @@ function rReports(m){
 
   // VAT quarters — current year + last year
   function getQtr(month){return Math.floor(month/3);}
+  const flatRate=S.co&&S.co.flatRatePct?S.co.flatRatePct:9.5;
   const vatRows=[];
   for(let y=ty-1;y<=ty;y++){
     for(let q=0;q<=3;q++){
@@ -2664,9 +2665,11 @@ function rReports(m){
       const net=qInvs.reduce((s,i)=>s+invNet(i),0);
       const vat=qInvs.reduce((s,i)=>s+invVat(i),0);
       const gross=qInvs.reduce((s,i)=>s+invTotal(i),0);
+      const flatDue=gross*(flatRate/100);
+      const vatProfit=vat-flatDue;
       const qLabel='Q'+(q+1)+' '+y;
       const months=[mn[q*3],mn[q*3+1],mn[q*3+2]].join(', ');
-      vatRows.push({label:qLabel,months,net,vat,gross,jobs:qInvs.length,isCurrent:y===ty&&getQtr(tm)===q});
+      vatRows.push({label:qLabel,months,net,vat,gross,flatDue,vatProfit,jobs:qInvs.length,isCurrent:y===ty&&getQtr(tm)===q});
     }
   }
 
@@ -2775,43 +2778,45 @@ function rReports(m){
 
     <!-- VAT Summary -->
     <div class="dash-card">
-      <div class="dash-card-title">VAT Summary — Quarterly</div>
-      <div style="font-size:11px;color:#888;margin-bottom:12px;">Based on paid invoices. For use with your HMRC VAT return.</div>
+      <div class="dash-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+        VAT Summary — Quarterly
+        <span style="font-size:11px;color:#888;font-weight:400;">Flat Rate Scheme @ ${flatRate}%</span>
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px;">Based on paid invoices. VAT collected at 20%, flat rate due at ${flatRate}% of gross.</div>
       ${vatRows.length===0?`<div style="text-align:center;padding:20px;color:#888;font-size:13px;">No paid invoices yet</div>`:''}
       <table style="width:100%;border-collapse:collapse;">
         <thead>
           <tr style="border-bottom:2px solid #e5e5e0;">
-            <th style="padding:8px 0;text-align:left;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">Quarter</th>
-            <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">Net</th>
-            <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">VAT</th>
-            <th style="padding:8px 0;text-align:right;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">Gross</th>
+            <th style="padding:8px 0;text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;">Quarter</th>
+            <th style="padding:8px 8px;text-align:right;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;">VAT Collected<br><span style="font-weight:400;">(charged @ 20%)</span></th>
+            <th style="padding:8px 8px;text-align:right;font-size:10px;font-weight:700;color:#c62828;text-transform:uppercase;">VAT Due HMRC<br><span style="font-weight:400;">(${flatRate}% of gross)</span></th>
+            <th style="padding:8px 0;text-align:right;font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;">VAT Profit<br><span style="font-weight:400;">(you keep)</span></th>
           </tr>
         </thead>
         <tbody>
-          ${vatRows.map(r=>`<tr style="border-bottom:1px solid #f0f0ed;${r.isCurrent?'background:#f0faf4;':''}" >
+          ${vatRows.map(r=>`<tr style="border-bottom:1px solid #f0f0ed;${r.isCurrent?'background:#f0faf4;':''}">
             <td style="padding:11px 0;">
               <div style="font-size:13px;font-weight:${r.isCurrent?'700':'600'};color:#111;">${r.label}${r.isCurrent?' <span style="font-size:10px;background:#276749;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;">Current</span>':''}</div>
-              <div style="font-size:11px;color:#888;">${r.months} · ${r.jobs} job${r.jobs!==1?'s':''}</div>
+              <div style="font-size:11px;color:#888;">${r.months} · ${r.jobs} job${r.jobs!==1?'s':''} · Gross ${fmt(r.gross)}</div>
             </td>
-            <td style="padding:11px 12px;text-align:right;font-size:13px;color:#333;">${fmt(r.net)}</td>
-            <td style="padding:11px 12px;text-align:right;font-size:13px;color:#1565c0;font-weight:600;">${fmt(r.vat)}</td>
-            <td style="padding:11px 0;text-align:right;font-size:13px;font-weight:700;color:#111;">${fmt(r.gross)}</td>
+            <td style="padding:11px 8px;text-align:right;font-size:13px;color:#1565c0;font-weight:600;">${fmt(r.vat)}</td>
+            <td style="padding:11px 8px;text-align:right;font-size:13px;color:#c62828;font-weight:600;">${fmt(r.flatDue)}</td>
+            <td style="padding:11px 0;text-align:right;font-size:13px;font-weight:700;color:#276749;">${fmt(r.vatProfit)}</td>
           </tr>`).join('')}
         </tbody>
         ${vatRows.length>0?`<tfoot>
           <tr style="border-top:2px solid #111;">
             <td style="padding:10px 0;font-size:13px;font-weight:700;">Total</td>
-            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:700;">${fmt(vatRows.reduce((s,r)=>s+r.net,0))}</td>
-            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:700;color:#1565c0;">${fmt(vatRows.reduce((s,r)=>s+r.vat,0))}</td>
-            <td style="padding:10px 0;text-align:right;font-size:13px;font-weight:700;">${fmt(vatRows.reduce((s,r)=>s+r.gross,0))}</td>
+            <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:#1565c0;">${fmt(vatRows.reduce((s,r)=>s+r.vat,0))}</td>
+            <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:#c62828;">${fmt(vatRows.reduce((s,r)=>s+r.flatDue,0))}</td>
+            <td style="padding:10px 0;text-align:right;font-size:13px;font-weight:700;color:#276749;">${fmt(vatRows.reduce((s,r)=>s+r.vatProfit,0))}</td>
           </tr>
         </tfoot>`:''}
       </table>
     </div>
 
-  </div>`;
+    </div>`;
 }
-
 
 function rClients(m){
   const q=(S.sq||'').toLowerCase();
@@ -3487,7 +3492,7 @@ function renderCustomerView(doc){
     +(c.website?'<div style="font-size:12px;color:#555;">Web: '+c.website+'</div>':'')
     +'</div>'
     +'<div style="text-align:right;">'
-    +(isInv?'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Payment terms</span><span style="font-size:12px;color:#333;">Due upon receipt</span></div>':'')
+    +(isInv?'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Payment terms</span><span style="font-size:12px;color:#333;">Within 5 days of completion</span></div>':'')
     +'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">'+(isInv?'Invoice #':'Quote #')+'</span><span style="font-size:12px;font-weight:600;color:#111;">'+doc.ref+'</span></div>'
     +'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Date</span><span style="font-size:12px;color:#333;">'+fdLong(doc.date)+'</span></div>'
     +(doc.expiryDate&&!isInv?'<div style="display:flex;justify-content:space-between;gap:20px;"><span style="font-size:12px;color:#888;">Valid Until</span><span style="font-size:12px;color:#333;">'+fdLong(doc.expiryDate)+'</span></div>':'')
