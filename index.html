@@ -501,6 +501,9 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
       <div class="ni" id="nav-items" onclick="nav('items')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg>Items
       </div>
+      <div class="ni" id="nav-reports" onclick="nav('reports')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reports
+      </div>
       <div class="ni" id="nav-admin" onclick="nav('admin')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Admin
       </div>
@@ -1226,6 +1229,7 @@ function render(){
   else if(S.view==='clients')rClients(m);
   else if(S.view==='activity')rActivity(m);
   else if(S.view==='items')rItems(m);
+  else if(S.view==='reports')rReports(m);
   else if(S.view==='admin')rAdmin(m);
   else if(S.view==='more')rMore(m);
   else if(S.view==='settings')rSettings(m);
@@ -2602,6 +2606,209 @@ function duplicateDoc(ref){
   render();
 }
 // --- Clients ------------------------------------------------------------------
+function rReports(m){
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date();
+  const allInvs=S.invoices||[];
+  const paidInvs=allInvs.filter(i=>i.status==='PAID');
+  const unpaidInvs=allInvs.filter(i=>i.status!=='PAID');
+
+  // Revenue helpers
+  function invTotal(i){return calcGrandTotal(i);}
+  function invNet(i){const g=calcGrandTotal(i);return i.vat?g/1.2:g;}
+  function invVat(i){const g=calcGrandTotal(i);return i.vat?g-g/1.2:0;}
+
+  // This month
+  const tm=now.getMonth(),ty=now.getFullYear();
+  const thisMonthInvs=paidInvs.filter(i=>new Date(i.date).getMonth()===tm&&new Date(i.date).getFullYear()===ty);
+  const thisMonthRev=thisMonthInvs.reduce((s,i)=>s+invTotal(i),0);
+  // Last month
+  const lm=tm===0?11:tm-1,ly=tm===0?ty-1:ty;
+  const lastMonthRev=paidInvs.filter(i=>new Date(i.date).getMonth()===lm&&new Date(i.date).getFullYear()===ly).reduce((s,i)=>s+invTotal(i),0);
+  // This year
+  const ytdRev=paidInvs.filter(i=>new Date(i.date).getFullYear()===ty).reduce((s,i)=>s+invTotal(i),0);
+  // All time
+  const allTimeRev=paidInvs.reduce((s,i)=>s+invTotal(i),0);
+  const allTimeJobs=paidInvs.length;
+  const avgJobVal=allTimeJobs>0?allTimeRev/allTimeJobs:0;
+
+  // Quotes stats
+  const allEsts=S.estimates||[];
+  const wonEsts=allEsts.filter(e=>e.status==='APPROVED').length;
+  const crPct=allEsts.length>0?Math.round((wonEsts/allEsts.length)*100):0;
+
+  // Outstanding
+  const outstanding=unpaidInvs.reduce((s,i)=>s+invTotal(i),0);
+
+  // Bar chart — last 12 months
+  const bars=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(ty,tm-i,1);
+    const mo=d.getMonth(),yr=d.getFullYear();
+    const rev=paidInvs.filter(inv=>new Date(inv.date).getMonth()===mo&&new Date(inv.date).getFullYear()===yr).reduce((s,inv)=>s+invTotal(inv),0);
+    bars.push({label:mn[mo].substring(0,3)+(mo===0?' '+yr:''),rev,cur:i===0});
+  }
+  const maxBar=Math.max(...bars.map(b=>b.rev),1);
+
+  // VAT quarters — current year + last year
+  function getQtr(month){return Math.floor(month/3);}
+  const vatRows=[];
+  for(let y=ty-1;y<=ty;y++){
+    for(let q=0;q<=3;q++){
+      const qInvs=paidInvs.filter(i=>{const d=new Date(i.date);return d.getFullYear()===y&&getQtr(d.getMonth())===q;});
+      if(qInvs.length===0&&y<ty)continue;
+      const net=qInvs.reduce((s,i)=>s+invNet(i),0);
+      const vat=qInvs.reduce((s,i)=>s+invVat(i),0);
+      const gross=qInvs.reduce((s,i)=>s+invTotal(i),0);
+      const qLabel='Q'+(q+1)+' '+y;
+      const months=[mn[q*3],mn[q*3+1],mn[q*3+2]].join(', ');
+      vatRows.push({label:qLabel,months,net,vat,gross,jobs:qInvs.length,isCurrent:y===ty&&getQtr(tm)===q});
+    }
+  }
+
+  // Overdue invoices
+  const overdueInvs=unpaidInvs.filter(i=>isOD(i));
+
+  // CSV export
+  function exportCSV(){
+    const rows=[['Ref','Client','Date','Net','VAT','Total','Status']];
+    paidInvs.forEach(i=>rows.push([i.ref,i.clientName,i.date,invNet(i).toFixed(2),invVat(i).toFixed(2),invTotal(i).toFixed(2),'PAID']));
+    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download='APL_invoices_'+ty+'.csv';a.click();
+  }
+  window.exportCSV=exportCSV;
+
+  m.innerHTML=`<div class="topbar"><h1>Reports</h1>
+    <button onclick="exportCSV()" style="background:#276749;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">⬇️ Export CSV</button>
+  </div>
+  <div class="content">
+
+    <!-- Headline Metrics -->
+    <div class="metric-grid" style="margin-bottom:20px;">
+      <div class="metric" style="border-top:3px solid #276749;">
+        <div style="font-size:20px;margin-bottom:4px;">📅</div>
+        <div class="metric-label">This Month</div>
+        <div class="metric-val" style="color:#276749;">${fmt(thisMonthRev)}</div>
+        <div class="metric-sub">${thisMonthInvs.length} job${thisMonthInvs.length!==1?'s':''} paid</div>
+      </div>
+      <div class="metric" style="border-top:3px solid #1565c0;">
+        <div style="font-size:20px;margin-bottom:4px;">📆</div>
+        <div class="metric-label">Last Month</div>
+        <div class="metric-val" style="color:#1565c0;">${fmt(lastMonthRev)}</div>
+        <div class="metric-sub">${mn[lm]} ${ly}</div>
+      </div>
+      <div class="metric" style="border-top:3px solid #6d28d9;">
+        <div style="font-size:20px;margin-bottom:4px;">📈</div>
+        <div class="metric-label">Year to Date</div>
+        <div class="metric-val" style="color:#6d28d9;">${fmt(ytdRev)}</div>
+        <div class="metric-sub">${ty}</div>
+      </div>
+      <div class="metric" style="border-top:3px solid #374151;">
+        <div style="font-size:20px;margin-bottom:4px;">🏆</div>
+        <div class="metric-label">All Time</div>
+        <div class="metric-val">${fmt(allTimeRev)}</div>
+        <div class="metric-sub">${allTimeJobs} jobs</div>
+      </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="dash-card" style="margin-bottom:16px;">
+      <div class="dash-card-title">Revenue — last 12 months</div>
+      <div class="bar-chart" style="height:120px;align-items:flex-end;">
+        ${bars.map(b=>{const h=b.rev>0?Math.max(Math.round((b.rev/maxBar)*100),4):2;return`<div class="bar-col">
+          <div style="font-size:9px;color:#888;margin-bottom:2px;">${b.rev>0?'£'+Math.round(b.rev/1000)+'k':''}</div>
+          <div style="height:${h}px;width:22px;background:${b.cur?'#276749':'#a7d9b8'};border-radius:4px 4px 0 0;"></div>
+          <div style="font-size:9px;color:${b.cur?'#276749':'#888'};font-weight:${b.cur?'700':'400'};margin-top:2px;">${b.label}</div>
+        </div>`}).join('')}
+      </div>
+    </div>
+
+    <div class="dash-grid" style="margin-bottom:16px;">
+      <!-- Jobs Summary -->
+      <div class="dash-card">
+        <div class="dash-card-title">Jobs Summary</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0ed;">
+            <div style="font-size:13px;color:#555;">Jobs completed</div>
+            <div style="font-size:16px;font-weight:700;color:#111;">${allTimeJobs}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0ed;">
+            <div style="font-size:13px;color:#555;">Average job value</div>
+            <div style="font-size:16px;font-weight:700;color:#276749;">${fmt(avgJobVal)}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0ed;">
+            <div style="font-size:13px;color:#555;">Quotes sent</div>
+            <div style="font-size:16px;font-weight:700;color:#111;">${allEsts.length}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+            <div style="font-size:13px;color:#555;">Conversion rate</div>
+            <div style="font-size:16px;font-weight:700;color:${crPct>=50?'#276749':'#ef4444'};">${crPct}%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outstanding -->
+      <div class="dash-card">
+        <div class="dash-card-title" style="display:flex;justify-content:space-between;align-items:center;">
+          Outstanding
+          ${outstanding>0?`<span style="font-size:13px;font-weight:700;color:#c62828;">${fmt(outstanding)}</span>`:'<span style="font-size:12px;color:#276749;font-weight:600;">All clear ✅</span>'}
+        </div>
+        ${unpaidInvs.length===0?`<div style="text-align:center;padding:20px;color:#276749;font-size:13px;">No outstanding invoices</div>`:''}
+        ${unpaidInvs.map(i=>{
+          const days=Math.floor((new Date()-new Date(i.date))/86400000);
+          const od=isOD(i);
+          return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0ed;">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#111;">${i.clientName}</div>
+              <div style="font-size:11px;color:${od?'#c62828':'#888'};margin-top:1px;">${od?'⚠️ Overdue — ':''} ${days} days ago</div>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:${od?'#c62828':'#111'};">${fmt(calcGrandTotal(i))}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- VAT Summary -->
+    <div class="dash-card">
+      <div class="dash-card-title">VAT Summary — Quarterly</div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px;">Based on paid invoices. For use with your HMRC VAT return.</div>
+      ${vatRows.length===0?`<div style="text-align:center;padding:20px;color:#888;font-size:13px;">No paid invoices yet</div>`:''}
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:2px solid #e5e5e0;">
+            <th style="padding:8px 0;text-align:left;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">Quarter</th>
+            <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">Net</th>
+            <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">VAT</th>
+            <th style="padding:8px 0;text-align:right;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;">Gross</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${vatRows.map(r=>`<tr style="border-bottom:1px solid #f0f0ed;${r.isCurrent?'background:#f0faf4;':''}" >
+            <td style="padding:11px 0;">
+              <div style="font-size:13px;font-weight:${r.isCurrent?'700':'600'};color:#111;">${r.label}${r.isCurrent?' <span style="font-size:10px;background:#276749;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;">Current</span>':''}</div>
+              <div style="font-size:11px;color:#888;">${r.months} · ${r.jobs} job${r.jobs!==1?'s':''}</div>
+            </td>
+            <td style="padding:11px 12px;text-align:right;font-size:13px;color:#333;">${fmt(r.net)}</td>
+            <td style="padding:11px 12px;text-align:right;font-size:13px;color:#1565c0;font-weight:600;">${fmt(r.vat)}</td>
+            <td style="padding:11px 0;text-align:right;font-size:13px;font-weight:700;color:#111;">${fmt(r.gross)}</td>
+          </tr>`).join('')}
+        </tbody>
+        ${vatRows.length>0?`<tfoot>
+          <tr style="border-top:2px solid #111;">
+            <td style="padding:10px 0;font-size:13px;font-weight:700;">Total</td>
+            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:700;">${fmt(vatRows.reduce((s,r)=>s+r.net,0))}</td>
+            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:700;color:#1565c0;">${fmt(vatRows.reduce((s,r)=>s+r.vat,0))}</td>
+            <td style="padding:10px 0;text-align:right;font-size:13px;font-weight:700;">${fmt(vatRows.reduce((s,r)=>s+r.gross,0))}</td>
+          </tr>
+        </tfoot>`:''}
+      </table>
+    </div>
+
+  </div>`;
+}
+
+
 function rClients(m){
   const q=(S.sq||'').toLowerCase();
   const fl=(S.clients||[]).filter(c=>!q||(c.name||'').toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
