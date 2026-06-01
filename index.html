@@ -3641,19 +3641,22 @@ function renderCustomerView(doc){
   // More actions state
   if(!window._moreActionsOpen)window._moreActionsOpen=false;
 
-  // Desktop layout for laptops/desktop — mobile layout for phones/tablets
+  // Desktop layout for laptops/desktop — use iframe so styles render correctly
   if(window.innerWidth>768){
     var deskHtml=buildDesktopHtml(doc);
+    // Create a blob URL so iframe gets proper styles
+    var blob=new Blob([deskHtml],{type:'text/html'});
+    var blobUrl=URL.createObjectURL(blob);
+    // Calculate iframe height after load
     body.innerHTML=
-      '<div class="no-print" style="background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:10px 16px;display:flex;gap:10px;justify-content:flex-end;align-items:center;position:sticky;top:0;z-index:10;">'
-      +'<button onclick="downloadPdf()" style="background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;padding:8px 16px;font-size:13px;cursor:pointer;">&#x2B07;&#xFE0F; Download PDF</button>'
-      +'<button onclick="printDesktop()" style="background:#276749;color:#fff;border:none;border-radius:4px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;">&#x1F5A8;&#xFE0F; Print</button>'
+      '<div class="no-print" style="background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:10px 20px;display:flex;gap:10px;justify-content:flex-end;align-items:center;">'
+      +'<button onclick="downloadPdf()" style="background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer;">&#x2B07;&#xFE0F; Download PDF</button>'
+      +'<button onclick="printDesktop()" style="background:#276749;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;">&#x1F5A8;&#xFE0F; Print</button>'
       +'</div>'
-      +'<div style="background:#f0f0f0;min-height:100%;padding:20px 12px 60px;">'
-      +'<div id="printable-doc" style="background:#fff;max-width:740px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,0.08);">'
-      +deskHtml.replace(/^<!DOCTYPE html>[\s\S]*?<body>/,'').replace(/<\/body>[\s\S]*?<\/html>$/,'')
-      +'</div></div>'
-      +(acceptHtml||tcHtml?'<div style="background:#f0f0f0;padding:0 12px 60px;"><div style="background:#fff;max-width:740px;margin:0 auto;padding:24px 40px;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,0.08);">'+tcHtml+acceptHtml+'</div></div>':'');
+      +'<div style="background:#e8e8e8;padding:24px;min-height:100vh;">'
+      +'<iframe id="desk-iframe" src="'+blobUrl+'" style="width:100%;min-height:1100px;border:none;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,0.15);display:block;border-radius:2px;" onload="var h=this.contentDocument.body.scrollHeight+60;this.style.height=h+String.fromCharCode(112,120);"></iframe>'
+      +'</div>'
+      +(acceptHtml||tcHtml?'<div style="background:#e8e8e8;padding:0 24px 60px;"><div style="background:#fff;max-width:760px;margin:0 auto;padding:28px 36px;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,0.15);">'+tcHtml+acceptHtml+'</div></div>':'');
     if(!document.getElementById('print-styles')){
       var st=document.createElement('style');st.id='print-styles';
       st.textContent='@media print{.no-print{display:none!important;}body{margin:0;background:#fff;}}';
