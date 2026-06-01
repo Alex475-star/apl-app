@@ -3136,7 +3136,27 @@ function renderCustomerView(doc){
     }
   }
 
-  var tcHtml=(!isInv&&!alreadySigned&&!expired&&doc.quoteFooter)?'<div style="margin-top:12px;font-size:11px;color:#888;line-height:1.6;">'+doc.quoteFooter+'</div>':'';
+  // T&C from company settings or fallback
+  var tcText=(S.co&&S.co.quoteTC)||'';
+  var tcHtml='';
+  if(!isInv&&tcText){
+    var tcLines=tcText.split('\n');
+    var tcFormatted=tcLines.map(function(line){
+      if(!line.trim())return'<div style="margin:4px 0;"></div>';
+      // Section headers (e.g. "1. Statutory Rights")
+      if(/^\d+\.\s/.test(line.trim())){
+        return'<div style="font-size:12px;font-weight:700;color:#222;margin-top:12px;margin-bottom:3px;">'+line+'</div>';
+      }
+      if(line.trim()==='TERMS & CONDITIONS OF SERVICE'){
+        return'<div style="font-size:14px;font-weight:800;color:#111;margin-bottom:8px;text-align:center;letter-spacing:1px;">'+line+'</div>';
+      }
+      return'<div style="font-size:11px;color:#444;line-height:1.7;">'+line+'</div>';
+    }).join('');
+    tcHtml='<div style="margin-top:28px;padding-top:20px;border-top:2px solid #e0e0e0;">'
+      +'<div style="background:#fafafa;border:1px solid #e0e0e0;border-radius:4px;padding:20px 24px;">'
+      +tcFormatted
+      +'</div></div>';
+  }
 
   body.innerHTML=
     // Print/PDF toolbar
