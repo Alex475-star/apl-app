@@ -1695,7 +1695,7 @@ function previewBeforeSend(){
 }
 
 function initSigPad(){
-  const canvas=document.getElementById('sig-canvas');
+  const canvas=document.getElementById('cust-sig-canvas');
   if(!canvas)return;
   sigCtx=canvas.getContext('2d');
   sigCtx.strokeStyle='#111';sigCtx.lineWidth=2.5;sigCtx.lineCap='round';sigCtx.lineJoin='round';
@@ -1714,12 +1714,12 @@ function initSigPad(){
 }
 
 function clearSig(){
-  const canvas=document.getElementById('sig-canvas');
+  const canvas=document.getElementById('cust-sig-canvas');
   if(canvas&&sigCtx)sigCtx.clearRect(0,0,canvas.width,canvas.height);
 }
 
 function saveSig(){
-  const canvas=document.getElementById('sig-canvas');
+  const canvas=document.getElementById('cust-sig-canvas');
   if(!canvas)return;
   const blank=document.createElement('canvas');blank.width=canvas.width;blank.height=canvas.height;
   if(canvas.toDataURL()===blank.toDataURL()){alert('Please sign before saving.');return;}
@@ -3128,7 +3128,7 @@ function renderCustomerView(doc){
         +'<div style="font-size:13px;font-weight:700;color:#111;margin-bottom:6px;">Accept this Quote</div>'
         +'<div style="font-size:12px;color:#555;margin-bottom:12px;line-height:1.6;">By signing below, you confirm acceptance of this quote and agreement to the Terms and Conditions of Alexander Pointing Ltd.</div>'
         +'<div id="sig-pad-wrap" style="border:1px solid #ccc;border-radius:4px;background:#fff;margin-bottom:10px;overflow:hidden;">'
-        +'<canvas id="sig-pad" style="width:100%;height:120px;touch-action:none;display:block;"></canvas></div>'
+        +'<canvas id="cust-sig-canvas" style="width:100%;height:120px;touch-action:none;display:block;"></canvas></div>'
         +'<div style="display:flex;gap:8px;">'
         +'<button id="accept-quote-btn" style="flex:1;background:#276749;color:#fff;border:none;border-radius:4px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;">Accept & Sign Quote</button>'
         +'<button onclick="clearSig()" style="background:#fff;border:1px solid #ccc;border-radius:4px;padding:12px 16px;font-size:12px;color:#555;cursor:pointer;">Clear</button>'
@@ -3137,7 +3137,7 @@ function renderCustomerView(doc){
   }
 
   // T&C from company settings or fallback
-  var tcText=(S.co&&S.co.quoteTC)||'';
+  var tcText=doc.quoteTC||(S.co&&S.co.quoteTC)||'';
   var tcHtml='';
   if(!isInv&&tcText){
     var tcLines=tcText.split('\n');
@@ -3269,7 +3269,7 @@ function renderCustomerView(doc){
   }
 
   setTimeout(function(){
-    var canvas=document.getElementById('sig-pad');
+    var canvas=document.getElementById('cust-sig-canvas');
     if(canvas){
       var ctx=canvas.getContext('2d');
       canvas.width=canvas.offsetWidth*(window.devicePixelRatio||1);
@@ -3383,10 +3383,16 @@ applyMobileLayout();
     document.getElementById('app').style.display='none';
     document.getElementById('cust-page').style.display='block';
     document.getElementById('cust-body').innerHTML='<div style="text-align:center;padding:60px 20px;"><div style="font-size:32px;margin-bottom:16px;">⏳</div><div style="font-size:16px;color:#555;">Loading your quote...</div></div>';
-    supaFetchDoc(quoteRef).then(function(remoteDoc){
+    // Fetch META first (for T&C + company settings), then fetch the doc
+    supaFetchDoc('_META_').then(function(metaDoc){
+      if(metaDoc&&metaDoc.co){S.co={...DEF_CO,...metaDoc.co};}
+      return supaFetchDoc(quoteRef);
+    }).then(function(remoteDoc){
       if(remoteDoc){
         if(!remoteDoc.quoteFooter)remoteDoc.quoteFooter=S.co.quoteFooter||'';
         if(!remoteDoc.invoiceFooter)remoteDoc.invoiceFooter=S.co.invoiceFooter||'';
+        // Attach T&C from company settings (now available since META loaded first)
+        if(!remoteDoc.quoteTC)remoteDoc.quoteTC=S.co.quoteTC||'';
         // Real view tracking
         const isInvoiceDoc=remoteDoc.ref&&remoteDoc.ref.includes('invoice');
         if(!remoteDoc.signature||isInvoiceDoc){
