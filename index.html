@@ -806,6 +806,51 @@ const ITEMS=[
   {name:"Bank Details",desc:"Alexander Pointing Ltd\nNatWest Bank\nAccount: 18135382\nSort Code: 01-01-42",rate:0}
 ];
 
+const APL_TC=`TERMS & CONDITIONS OF SERVICE
+
+1. Statutory Rights
+Nothing in these terms shall in any way exclude or restrict the customer's statutory rights under the Unfair Contract Terms Act 1977, the Supply of Goods and Services Act 1982, and any other applicable legislation.
+
+2. Quality of Work
+Alexander Pointing Ltd will carry out all repointing and associated works with reasonable care and skill. The company shall not be liable for minor blemishes consistent with the nature of hand-applied mortar work.
+
+3. Site Preparation & Customer Responsibilities
+The customer is responsible for ensuring all work areas are clear prior to works commencing. Alexander Pointing Ltd cannot be held liable for damage to items left within the designated work area.
+
+4. Brick Replacement
+Repointing works do not include brick replacement unless stated in the quote. Where required, bricks will be charged at £25 + VAT per brick with prior customer approval.
+
+5. Cable Re-Pinning
+Re-pinning of cables disturbed during works is a separate chargeable service (£40-£80). Full payment for repointing is due within 5 days of completion regardless of cable re-pinning status.
+
+6. Payment Terms
+Full payment is due no later than 5 days after the date of completion. Late payments may incur interest at 8% above the Bank of England base rate.
+
+7. Delays & Force Majeure
+Alexander Pointing Ltd will not be liable for delays arising from inclement weather, acts of God, or any matter beyond the reasonable control of the company.
+
+8. Time for Completion
+Time for completion shall not be of the essence. In cases of unreasonable delay the customer may give written notice specifying a reasonable completion date.
+
+9. Title of Materials
+Title of materials supplied shall not pass to the customer until full payment has been received.
+
+10. Cancellation
+The customer may cancel within 14 days by recorded delivery to: Alexander Pointing Ltd, Ivy Bank, Walmersley Old Road, Bury, BL9 6RU. Notices must include the Reference Number, Date of Order, Full Name and Signature.
+
+11. Company Right to Decline
+Alexander Pointing Ltd reserves the right to decline or withdraw from any contract at its reasonable discretion.
+
+12. Limitation of Liability
+Total liability shall not exceed the value of works agreed. The company shall not be liable for indirect or consequential losses.
+
+13. Workmanship Guarantee
+A 2-year workmanship guarantee applies to repointing on external elevations of residential buildings. This does not apply to garden walls, boundary walls, or freestanding structures.
+
+14. Acceptance of Quotation
+By accepting this quotation, the customer agrees to be bound by these Terms & Conditions in full. Written acceptance is required before works commence.
+
+For queries contact us on 0161 327 2843.`;
 const DEF_CO={loginUser:'apl',loginPass:'admin',firstName:'Iain',lastName:'Alexander',email:'mail@ukpointing.com',phone:'0161 327 2843',mobile:'07786 436 863',companyName:'Alexander Pointing Ltd',address:'Ivy Bank, Walmersley Old Road',city:'Bury',postcode:'BL9 6RU',website:'www.ukpointing.com',companyNumber:'87688895',vatNumber:'185650778',bankName:'NatWest',bankAccount:'18135382',sortCode:'01-01-42',quoteExpiry:'90',defaultVat:false,
 googleReviewUrl:'https://g.page/r/YOUR-GOOGLE-REVIEW-LINK/review',
 quoteEmailSubject:'Your Quote from Alexander Pointing Ltd',
@@ -3137,7 +3182,7 @@ function renderCustomerView(doc){
   }
 
   // T&C from company settings or fallback
-  var tcText=doc.quoteTC||(S.co&&S.co.quoteTC)||'';
+  var tcText=doc.quoteTC||(S.co&&S.co.quoteTC)||APL_TC||'';
   var tcHtml='';
   if(!isInv&&tcText){
     var tcLines=tcText.split('\n');
@@ -3251,7 +3296,7 @@ function renderCustomerView(doc){
     // Accept / T&C sections
     +(acceptHtml||tcHtml?'<div style="background:#f0f0f0;padding:16px 12px 60px;">'
     +'<div style="background:#fff;max-width:740px;margin:12px auto;padding:24px 40px;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,0.08);">'
-    +acceptHtml+tcHtml
+    +tcHtml+acceptHtml
     +'</div></div>':'');
 
   if(!document.getElementById('print-styles')){
