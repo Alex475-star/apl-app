@@ -3592,12 +3592,12 @@ function renderCustomerView(doc){
   if(!isInv&&tcText){
     var tcLines=tcText.split('\n');
     var tcFormatted=tcLines.map(function(line){
-      if(!line.trim())return'<div style="margin:4px 0;"></div>';
-      if(/^\d+\.\s/.test(line.trim()))return'<div style="font-size:14px;font-weight:700;color:#111;margin-top:14px;margin-bottom:3px;">'+line+'</div>';
-      if(line.trim()==='TERMS & CONDITIONS OF SERVICE')return'<div style="font-size:16px;font-weight:800;color:#111;margin-bottom:10px;">'+line+'</div>';
-      return'<div style="font-size:14px;color:#333;line-height:1.7;">'+line+'</div>';
+      if(!line.trim())return'<div style="margin:3px 0;"></div>';
+      if(/^\d+\.\s/.test(line.trim()))return'<div style="font-size:11px;font-weight:700;color:#333;margin-top:10px;margin-bottom:2px;">'+line+'</div>';
+      if(line.trim()==='TERMS & CONDITIONS OF SERVICE')return'<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">'+line+'</div>';
+      return'<div style="font-size:11px;color:#555;line-height:1.6;">'+line+'</div>';
     }).join('');
-    tcHtml='<div style="padding:20px 16px;background:#fff;margin-top:2px;">'+tcFormatted+'</div>';
+    tcHtml='<div style="padding:16px;background:#f9f9f7;margin-top:2px;border-top:1px solid #e0e0e0;">'+tcFormatted+'</div>';
   }
 
   // Accept section
