@@ -3427,7 +3427,7 @@ function buildDesktopHtml(doc){
   var logoImg=logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="max-height:55px;max-width:160px;object-fit:contain;">':'<strong style="font-size:16px;">'+c.companyName+'</strong>';
 
   return'<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Helvetica Neue,Arial,sans-serif;color:#222;background:#fff;padding:20mm 18mm;font-size:13px;}table{border-collapse:collapse;width:100%;}</style></head><body>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Helvetica Neue,Arial,sans-serif;color:#222;background:#fff;padding:16mm 20mm;font-size:13.5px;}table{border-collapse:collapse;width:100%;}</style></head><body>'
     +'<div style="text-align:center;font-size:14px;font-weight:300;color:#bbb;letter-spacing:4px;text-transform:uppercase;margin-bottom:24px;">'+(isInv?'INVOICE':'QUOTE')+'</div>'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">'
     +logoImg
@@ -3474,8 +3474,8 @@ function buildDesktopHtml(doc){
     +notesHtml
     +bdHtml
     +(c.companyNo||c.vat?'<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#888;">'
-    +(c.companyNo?'Company Number '+c.companyNo+'  ':'')
-    +(c.vat?'Vat Number '+c.vat:'')
+    +(c.companyNo?'<div>Company Number '+c.companyNo+'</div>':'')
+    +(c.vat?'<div>Vat Number '+c.vat+'</div>':'')
     +'</div>':'')
     +'<div style="margin-top:20px;border-top:1px solid #e0e0e0;padding-top:14px;">'
     +(logosSrc&&logosSrc.length>100?'<img src="'+logosSrc+'" style="width:100%;max-width:100%;object-fit:contain;">':'')
@@ -3653,7 +3653,7 @@ function renderCustomerView(doc){
       +'<button onclick="downloadPdf()" style="background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer;">&#x2B07;&#xFE0F; Download PDF</button>'
       +'<button onclick="printDesktop()" style="background:#276749;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;">&#x1F5A8;&#xFE0F; Print</button>'
       +'</div>'
-      +'<div style="background:#e8e8e8;padding:24px;min-height:100vh;">'
+      +'<div style="background:#e8e8e8;padding:30px 40px;min-height:100vh;">'
       +'<iframe id="desk-iframe" src="'+blobUrl+'" style="width:100%;min-height:1100px;border:none;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,0.15);display:block;border-radius:2px;" onload="var h=this.contentDocument.body.scrollHeight+60;this.style.height=h+String.fromCharCode(112,120);"></iframe>'
       +'</div>'
       +(acceptHtml||tcHtml?'<div style="background:#e8e8e8;padding:0 24px 60px;"><div style="background:#fff;max-width:760px;margin:0 auto;padding:28px 36px;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,0.15);">'+tcHtml+acceptHtml+'</div></div>':'');
