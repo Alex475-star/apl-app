@@ -3378,12 +3378,6 @@ function closeCustomerView(){
   document.getElementById('cust-page').style.display='none';
 }
 
-var custViewMode=window.innerWidth<700?'mobile':'desktop';
-function setCustView(mode){
-  custViewMode=mode;
-  if(S.custDoc)renderCustomerView(S.custDoc);
-}
-
 
 function custClearSig(){
   var c=document.getElementById('cust-sig-canvas');
@@ -3427,97 +3421,67 @@ function renderCustomerView(doc){
   const expired=doc.expiryDate&&new Date(doc.expiryDate)<new Date()&&!isInv;
   const alreadySigned=!!doc.signature;
 
-  // Separate bank details from regular line items
+  // Separate bank details
   const bankItem=(doc.lineItems||[]).find(li=>(li.name||'').toLowerCase().includes('bank detail'));
   const lineItems=(doc.lineItems||[]).filter(li=>!(li.name||'').toLowerCase().includes('bank detail'));
-  const showRate=lineItems.some(li=>li.rate>0);
-  const addrParts=(doc.serviceAddress||doc.address||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
 
-  // Build line item rows
-  var rows=lineItems.map(function(li){
-    var lt=li.rate*li.qty;
-    return '<tr>'
-      +'<td style="padding:10px 0;border-bottom:1px solid #e5e5e5;vertical-align:top;">'
-      +'<div style="font-size:13px;font-weight:600;color:#111;">'+li.name+'</div>'
-      +(li.desc?'<div style="font-size:12px;color:#555;line-height:1.6;margin-top:3px;">'+li.desc+'</div>':'')
-      +'</td>'
-      +(showRate?'<td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;vertical-align:top;font-size:13px;white-space:nowrap;color:#444;">'+(li.rate>0?fmt(li.rate):'-')+'</td>':'')
-      +'<td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:center;vertical-align:top;font-size:13px;color:#444;">'+li.qty+'</td>'
-      +'<td style="padding:10px 0;border-bottom:1px solid #e5e5e5;text-align:right;vertical-align:top;font-size:13px;font-weight:700;white-space:nowrap;">'+(lt>0?fmt(lt):'-')+'</td>'
-      +'</tr>';
-  }).join('');
+  // Address parts
+  const addrParts=(doc.serviceAddress||doc.address||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
 
   // Photos
   var photosHtml='';
   if(doc.photos&&doc.photos.length>0){
-    photosHtml='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:16px;">'
-      +doc.photos.map(function(p){return'<img src="'+p.data+'" style="width:100%;border-radius:4px;object-fit:cover;max-height:200px;">';}).join('')+'</div>';
+    photosHtml='<div style="margin:20px 0;">'
+      +doc.photos.map(function(p){return'<img src="'+p.data+'" style="width:100%;border-radius:4px;object-fit:cover;max-height:240px;margin-bottom:8px;">';}).join('')+'</div>';
   }
 
-  // Bank details (invoices only)
+  // Bank details
   var bankDetailsHtml='';
   if(isInv){
     var bd=bankItem?bankItem.desc:'Alexander Pointing Ltd\nNatWest\nAccount: 18135382\nSort Code: 01-01-42';
-    bankDetailsHtml='<div style="margin-top:16px;padding:14px;background:#f7f9f7;border:1px solid #dde8dd;border-radius:4px;">'
-      +'<div style="font-size:11px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Payment Details</div>'
-      +'<div style="font-size:12px;color:#333;line-height:1.8;">'+bd.split('\n').join('<br>')+'</div>'
-      +'<div style="font-size:11px;color:#666;margin-top:6px;">Payment due within 5 days of completion.</div>'
+    bankDetailsHtml='<div style="padding:16px 0;border-top:1px solid #e0e0e0;">'
+      +'<div style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;">Payment Details</div>'
+      +'<div style="font-size:14px;color:#333;line-height:1.9;">'+bd.split('\n').join('<br>')+'</div>'
+      +'<div style="font-size:13px;color:#666;margin-top:6px;">Payment due within 5 days of completion.</div>'
       +'</div>';
   }
 
-  // Guarantee Certificate (invoices with guarantee toggled on)
+  // Guarantee
   var guaranteeHtml='';
   if(isInv&&doc.guarantee){
     var issueDate=doc.date?new Date(doc.date):new Date();
-    var validUntil=new Date(issueDate);
-    validUntil.setFullYear(validUntil.getFullYear()+2);
+    var validUntil=new Date(issueDate);validUntil.setFullYear(validUntil.getFullYear()+2);
     var certNum='GRT-'+doc.ref.replace(/[^0-9]/g,'');
-    var logoS=logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="height:44px;object-fit:contain;">':'<strong>Alexander Pointing Ltd</strong>';
-    guaranteeHtml='<div style="margin-top:24px;page-break-inside:avoid;">'
-      +'<div style="border:3px solid #276749;border-radius:8px;overflow:hidden;">'
-      +'<div style="background:linear-gradient(135deg,#1a2332,#276749);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">'
-      +logoS
-      +'<div style="text-align:right;"><div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:2px;">GUARANTEE</div>'
-      +'<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">CERTIFICATE OF WORKMANSHIP</div></div></div>'
-      +'<div style="padding:20px 24px;background:#fff;">'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #e0e0e0;">'
-      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Certificate No.</div>'
-      +'<div style="font-size:14px;font-weight:700;color:#111;">'+certNum+'</div></div>'
-      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Issued To</div>'
-      +'<div style="font-size:14px;font-weight:700;color:#111;">'+doc.clientName+'</div></div>'
-      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Property</div>'
-      +'<div style="font-size:13px;color:#333;">'+(doc.serviceAddress||doc.address||'As per invoice')+'</div></div>'
-      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Guarantee Period</div>'
-      +'<div style="font-size:13px;color:#333;">'+issueDate.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+' to '+validUntil.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</div></div>'
+    guaranteeHtml='<div style="padding:16px 0;border-top:1px solid #e0e0e0;">'
+      +'<div style="border:2px solid #276749;border-radius:8px;overflow:hidden;">'
+      +'<div style="background:linear-gradient(135deg,#1a2332,#276749);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">'
+      +(logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="height:36px;object-fit:contain;">':'<strong style="color:#fff;">Alexander Pointing Ltd</strong>')
+      +'<div style="text-align:right;"><div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:2px;">GUARANTEE</div>'
+      +'<div style="font-size:10px;color:rgba(255,255,255,0.6);">CERTIFICATE OF WORKMANSHIP</div></div></div>'
+      +'<div style="padding:16px;background:#fff;">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #e0e0e0;">'
+      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;margin-bottom:3px;">Certificate No.</div><div style="font-size:13px;font-weight:700;">'+certNum+'</div></div>'
+      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;margin-bottom:3px;">Issued To</div><div style="font-size:13px;font-weight:700;">'+doc.clientName+'</div></div>'
+      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;margin-bottom:3px;">Property</div><div style="font-size:13px;color:#333;">'+(doc.serviceAddress||doc.address||'As per invoice')+'</div></div>'
+      +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;margin-bottom:3px;">Valid Until</div><div style="font-size:13px;color:#333;">'+validUntil.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</div></div>'
       +'</div>'
-      +'<div style="font-size:12px;color:#444;line-height:1.7;margin-bottom:16px;">'
-      +'<p style="margin:0 0 10px;"><strong>What is covered:</strong> Alexander Pointing Ltd guarantees all repointing works to the external elevations of the above property against defects or premature decay of mortar for <strong>2 years</strong> from the date of the original invoice. Defects are defined as mortar that has become loose, missing, or has worn significantly. Remedial works will be carried out within 28 days of written notification, subject to weather conditions.</p>'
-      +'<p style="margin:0 0 8px;"><strong>Exclusions — this guarantee does not cover:</strong></p>'
-      +'<ul style="margin:0 0 10px;padding-left:18px;font-size:12px;">'
-      +'<li>Natural wear from wind, rain, frost or other elements</li>'
-      +'<li>Structural change or movement to the building</li>'
-      +'<li>Third party damage, accidental or intentional</li>'
-      +'<li>Acts of God</li>'
-      +'<li>Damage caused by leaking gutters or downpipes</li>'
-      +'<li>Any repointing carried out by anyone other than Alexander Pointing Ltd</li>'
-      +'<li>Pollutants including exhaust fumes, gritting salt, moss, algae or lichens</li>'
-      +'</ul>'
-      +'<p style="margin:0;">This guarantee applies to the original customer only and is not transferable upon sale of the property.</p>'
+      +'<div style="font-size:12px;color:#444;line-height:1.7;margin-bottom:12px;">'
+      +'<p style="margin:0 0 8px;"><strong>What is covered:</strong> All repointing works to the external elevations against defects or premature decay of mortar for 2 years from the invoice date. Remedial works within 28 days of written notification.</p>'
+      +'<p style="margin:0 0 6px;"><strong>Exclusions:</strong> Natural wear, structural change, third party damage, acts of God, leaking gutters/downpipes, repointing by others, pollutants (salt, moss, algae, exhaust fumes).</p>'
+      +'<p style="margin:0;">Not transferable upon sale of the property.</p>'
       +'</div>'
-      +'<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:12px 14px;margin-bottom:16px;">'
-      +'<div style="font-size:12px;color:#92400e;font-weight:700;margin-bottom:3px;">Conditional on Payment</div>'
-      +'<div style="font-size:12px;color:#78350f;line-height:1.6;">This guarantee becomes valid upon receipt of payment in full. Until full payment is received, this guarantee is void.</div>'
+      +'<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:10px 12px;">'
+      +'<div style="font-size:12px;color:#92400e;font-weight:700;margin-bottom:2px;">Conditional on Payment</div>'
+      +'<div style="font-size:12px;color:#78350f;line-height:1.6;">This guarantee becomes valid upon receipt of payment in full. Until then it is void.</div>'
       +'</div>'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:1px solid #e0e0e0;">'
-      +'<div style="font-size:11px;color:#555;">Issued by Alexander Pointing Ltd<br>Company No: '+(c.companyNo||'87688895')+'  VAT: '+(c.vat||'185650778')+'</div>'
-      +'<div style="font-size:11px;color:#888;font-style:italic;">Subject to Alexander Pointing Ltd Terms &amp; Conditions</div>'
-      +'</div></div></div></div>';
+      +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#888;">Issued by Alexander Pointing Ltd — Company No: '+(c.companyNo||'87688895')+'</div>'
+      +'</div></div></div>';
   }
 
   // Notes
-  var notesHtml=doc.notes?'<div style="margin-top:16px;">'
-    +'<div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Notes</div>'
-    +'<div style="font-size:12px;color:#333;line-height:1.6;">'+doc.notes.split('\n').join('<br>')+'</div></div>':'';
+  var notesHtml=doc.notes?'<div style="padding:16px 0;border-top:1px solid #e0e0e0;">'
+    +'<div style="font-size:13px;font-weight:700;color:#333;margin-bottom:6px;">Notes</div>'
+    +'<div style="font-size:14px;color:#333;line-height:1.7;">'+doc.notes.split('\n').join('<br>')+'</div></div>':'';
 
   // T&C
   var tcText=doc.quoteTC||(S.co&&S.co.quoteTC)||APL_TC||'';
@@ -3526,133 +3490,151 @@ function renderCustomerView(doc){
     var tcLines=tcText.split('\n');
     var tcFormatted=tcLines.map(function(line){
       if(!line.trim())return'<div style="margin:4px 0;"></div>';
-      if(/^\d+\.\s/.test(line.trim()))return'<div style="font-size:12px;font-weight:700;color:#222;margin-top:12px;margin-bottom:3px;">'+line+'</div>';
-      if(line.trim()==='TERMS & CONDITIONS OF SERVICE')return'<div style="font-size:14px;font-weight:800;color:#111;margin-bottom:8px;text-align:center;letter-spacing:1px;">'+line+'</div>';
-      return'<div style="font-size:11px;color:#444;line-height:1.7;">'+line+'</div>';
+      if(/^\d+\.\s/.test(line.trim()))return'<div style="font-size:14px;font-weight:700;color:#111;margin-top:14px;margin-bottom:3px;">'+line+'</div>';
+      if(line.trim()==='TERMS & CONDITIONS OF SERVICE')return'<div style="font-size:16px;font-weight:800;color:#111;margin-bottom:10px;">'+line+'</div>';
+      return'<div style="font-size:14px;color:#333;line-height:1.7;">'+line+'</div>';
     }).join('');
-    tcHtml='<div style="margin-top:28px;padding-top:20px;border-top:2px solid #e0e0e0;">'
-      +'<div style="background:#fafafa;border:1px solid #e0e0e0;border-radius:4px;padding:20px 24px;">'
-      +tcFormatted+'</div></div>';
+    tcHtml='<div style="padding:20px 16px;background:#fff;margin-top:2px;">'+tcFormatted+'</div>';
   }
 
   // Accept section
   var acceptHtml='';
   if(!isInv){
     if(alreadySigned){
-      acceptHtml='<div style="margin-top:24px;padding:16px;background:#f0faf4;border:1px solid #b2dfdb;border-radius:4px;text-align:center;">'
-        +'<div style="font-size:20px;margin-bottom:6px;">&#x2705;</div>'
-        +'<div style="font-size:14px;font-weight:700;color:#276749;">Quote Accepted</div>'
-        +'<div style="font-size:12px;color:#555;margin-top:4px;">Thank you for accepting this quote.</div></div>';
+      acceptHtml='<div style="padding:20px 16px;background:#f0faf4;margin-top:2px;text-align:center;">'
+        +'<div style="font-size:24px;margin-bottom:8px;">&#x2705;</div>'
+        +'<div style="font-size:16px;font-weight:700;color:#276749;">Quote Accepted</div>'
+        +'<div style="font-size:14px;color:#555;margin-top:4px;">Thank you for accepting this quote.</div></div>';
     } else if(expired){
-      acceptHtml='<div style="margin-top:24px;padding:16px;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;text-align:center;">'
-        +'<div style="font-size:20px;margin-bottom:6px;">&#x23F0;</div>'
-        +'<div style="font-size:14px;font-weight:700;color:#e65100;">This quote has expired</div>'
-        +'<div style="font-size:12px;color:#bf360c;margin-top:4px;">Please contact us for an updated quotation.</div></div>';
+      acceptHtml='<div style="padding:20px 16px;background:#fff8e1;margin-top:2px;text-align:center;">'
+        +'<div style="font-size:24px;margin-bottom:8px;">&#x23F0;</div>'
+        +'<div style="font-size:16px;font-weight:700;color:#e65100;">This quote has expired</div>'
+        +'<div style="font-size:14px;color:#bf360c;margin-top:4px;">Please contact us for an updated quotation.</div></div>';
     } else {
-      acceptHtml='<div style="margin-top:24px;padding:16px;border:1px solid #276749;border-radius:4px;">'
-        +'<div style="font-size:13px;font-weight:700;color:#111;margin-bottom:6px;">Accept this Quote</div>'
-        +'<div style="font-size:12px;color:#555;margin-bottom:12px;line-height:1.6;">By signing below, you confirm acceptance of this quote and agreement to the Terms and Conditions of Alexander Pointing Ltd.</div>'
-        +'<div id="sig-pad-wrap" style="border:1px solid #ccc;border-radius:4px;background:#fff;margin-bottom:10px;overflow:hidden;">'
-        +'<canvas id="cust-sig-canvas" style="width:100%;height:120px;touch-action:none;display:block;"></canvas></div>'
-        +'<div style="display:flex;gap:8px;">'
-        +'<button id="accept-quote-btn" style="flex:1;background:#276749;color:#fff;border:none;border-radius:4px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;">Accept &amp; Sign Quote</button>'
-        +'<button onclick="custClearSig()" style="background:#fff;border:1px solid #ccc;border-radius:4px;padding:12px 16px;font-size:12px;color:#555;cursor:pointer;">Clear</button>'
+      acceptHtml='<div style="padding:20px 16px;background:#fff;margin-top:2px;border-top:2px solid #e0e0e0;">'
+        +'<div style="font-size:16px;font-weight:700;color:#111;margin-bottom:8px;">Accept this Quote</div>'
+        +'<div style="font-size:14px;color:#555;margin-bottom:16px;line-height:1.7;">By signing below, you confirm acceptance of this quote and agreement to the Terms and Conditions of Alexander Pointing Ltd.</div>'
+        +'<div id="sig-pad-wrap" style="border:1px solid #276749;border-radius:6px;background:#fff;margin-bottom:12px;overflow:hidden;">'
+        +'<canvas id="cust-sig-canvas" style="width:100%;height:130px;touch-action:none;display:block;"></canvas></div>'
+        +'<div style="display:flex;gap:10px;">'
+        +'<button id="accept-quote-btn" style="flex:1;background:#276749;color:#fff;border:none;border-radius:6px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;">Accept &amp; Sign Quote</button>'
+        +'<button onclick="custClearSig()" style="background:#fff;border:1px solid #ccc;border-radius:6px;padding:16px 18px;font-size:14px;color:#555;cursor:pointer;">Clear</button>'
         +'</div></div>';
     }
   }
 
-  // Build full page
-  const dm=custViewMode==='desktop';
+  // Line items
+  var itemsHtml=lineItems.map(function(li){
+    var lt=li.rate*li.qty;
+    return'<div style="padding:14px 0;border-top:1px solid #e0e0e0;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:'+(li.desc?'6px':'0')+';">'
+      +'<div style="font-size:15px;font-weight:600;color:#111;flex:1;">'+li.name+'</div>'
+      +(lt>0?'<div style="font-size:15px;font-weight:700;color:#111;white-space:nowrap;">'+fmt(lt)+'</div>':'')
+      +'</div>'
+      +(li.desc?'<div style="font-size:13px;color:#555;line-height:1.6;">'+li.desc+'</div>':'')
+      +'</div>';
+  }).join('');
+
+  // More actions state
+  if(!window._moreActionsOpen)window._moreActionsOpen=false;
+
   body.innerHTML=
-    '<div class="no-print" style="background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:10px 16px;display:flex;gap:10px;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;">'
-    +'<div style="display:flex;gap:4px;background:#e0e0e0;border-radius:6px;padding:3px;">'
-    +'<button onclick="setCustView(&quot;mobile&quot;)" style="background:'+(dm?'transparent':'#fff')+';color:'+(dm?'#888':'#333')+';border:none;border-radius:4px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;">&#x1F4F1; Mobile</button>'
-    +'<button onclick="setCustView(&quot;desktop&quot;)" style="background:'+(dm?'#fff':'transparent')+';color:'+(dm?'#333':'#888')+';border:none;border-radius:4px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;">&#x1F4BB; Desktop</button>'
-    +'</div>'
-    +'<div style="display:flex;gap:8px;">'
-    +'<button onclick="window.print()" style="background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;">&#x1F5A8;&#xFE0F; Print</button>'
-    +'<button onclick="downloadPdf()" style="background:#276749;color:#fff;border:none;border-radius:4px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;">&#x2B07;&#xFE0F; PDF</button>'
-    +'</div>'
-    +'</div>'
-    +'<div style="background:#f0f0f0;min-height:100%;padding:12px 8px 60px;overflow-x:hidden;">'
-    +'<div id="printable-doc" style="background:#fff;max-width:'+(dm?'740px':'100%')+';margin:0 auto;padding:'+(dm?'24px 20px':'16px 12px')+';font-family:Helvetica Neue,Arial,sans-serif;color:#222;font-size:'+(dm?'13px':'14px')+';box-shadow:0 1px 6px rgba(0,0,0,0.08);box-sizing:border-box;">'
+    // More Actions bar (replaces old toolbar)
+    '<div class="no-print" id="more-actions-bar" style="background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10;">'
+    +'<div onclick="window._moreActionsOpen=!window._moreActionsOpen;var d=document.getElementById(\'more-actions-dd\');d.style.display=window._moreActionsOpen?\'block\':\'none\';" '
+    +'style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:15px;font-weight:600;color:#333;">'
+    +'<span>More Actions</span><span style="font-size:12px;">&#9660;</span></div>'
+    +'<div id="more-actions-dd" style="display:none;border-top:1px solid #e0e0e0;">'
+    +'<div onclick="downloadPdf()" style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f0f0f0;cursor:pointer;font-size:15px;color:#333;">'
+    +'<span style="font-size:18px;">&#x2B07;&#xFE0F;</span>Download PDF</div>'
+    +'<div onclick="window.print()" style="padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;font-size:15px;color:#333;">'
+    +'<span style="font-size:18px;">&#x1F5A8;&#xFE0F;</span>View &amp; Print PDF</div>'
+    +'</div></div>'
+
+    // Document — full width, no card styling, like Joist
+    +'<div id="printable-doc" style="background:#fff;padding:20px 16px;font-family:Helvetica Neue,Arial,sans-serif;color:#222;font-size:14px;box-sizing:border-box;max-width:680px;margin:0 auto;">'
+
     // Doc type header
-    +'<div style="text-align:center;font-size:16px;font-weight:300;color:#bbb;letter-spacing:4px;text-transform:uppercase;margin-bottom:28px;">'+(isInv?'INVOICE':'QUOTE')+'</div>'
-    // Logo + client
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:'+(dm?'nowrap':'wrap')+';gap:12px;">'
-    +(logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="max-height:60px;max-width:180px;object-fit:contain;">':'<div style="font-size:16px;font-weight:700;">'+c.companyName+'</div>')
-    +'<div style="text-align:right;">'
-    +'<div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'+(isInv?'Bill To':'Prepared For')+'</div>'
-    +'<div style="font-size:14px;font-weight:700;color:#111;">'+doc.clientName+'</div>'
-    +addrParts.map(function(p){return'<div style="font-size:12px;color:#444;margin-top:2px;">'+p+'</div>';}).join('')
-    +((doc.mobile||doc.phone)?'<div style="font-size:12px;color:#444;margin-top:2px;">'+(doc.mobile||doc.phone)+'</div>':'')
-    +(doc.email?'<div style="font-size:12px;color:#444;margin-top:2px;">'+doc.email+'</div>':'')
+    +'<div style="text-align:center;font-size:15px;font-weight:300;color:#aaa;letter-spacing:4px;text-transform:uppercase;margin-bottom:20px;">'+(isInv?'INVOICE':'QUOTE')+'</div>'
+
+    // Logo + Company info (side by side, like Joist)
+    +'<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;flex-wrap:wrap;">'
+    +(logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="max-height:50px;max-width:130px;object-fit:contain;flex-shrink:0;">':'')
+    +'<div style="flex:1;">'
+    +'<div style="font-size:15px;font-weight:700;color:#111;margin-bottom:4px;">'+c.companyName+'</div>'
+    +(c.address?'<div style="font-size:13px;color:#444;">'+c.address+'</div>':'')
+    +((c.city||c.postcode)?'<div style="font-size:13px;color:#444;">'+(c.city?c.city+' ':'')+(c.postcode||'')+'</div>':'')
+    +(c.phone?'<div style="font-size:13px;color:#1565c0;">Phone: '+c.phone+'</div>':'')
+    +(c.mobile?'<div style="font-size:13px;color:#1565c0;">'+c.mobile+'</div>':'')
+    +(c.email?'<div style="font-size:13px;color:#1565c0;">Email: '+c.email+'</div>':'')
+    +(c.website?'<div style="font-size:13px;color:#1565c0;">Web: '+c.website+'</div>':'')
     +'</div></div>'
-    // Divider
-    +'<div style="border-top:1px solid #e0e0e0;margin-bottom:20px;"></div>'
-    // Company details + invoice ref
-    +'<div style="display:'+(dm?'flex':'block')+';justify-content:space-between;margin-bottom:20px;gap:16px;">'
-    +'<div>'
-    +'<div style="font-size:13px;font-weight:700;color:#111;margin-bottom:4px;">'+c.companyName+'</div>'
-    +(c.address?'<div style="font-size:12px;color:#555;">'+c.address+'</div>':'')
-    +((c.city||c.postcode)?'<div style="font-size:12px;color:#555;">'+(c.city?c.city+' ':'')+(c.postcode||'')+'</div>':'')
-    +(c.phone?'<div style="font-size:12px;color:#555;">Phone: '+c.phone+'</div>':'')
-    +(c.email?'<div style="font-size:12px;color:#555;">Email: '+c.email+'</div>':'')
-    +(c.website?'<div style="font-size:12px;color:#555;">Web: '+c.website+'</div>':'')
+
+    // Prepared For
+    +'<div style="padding:14px 0;border-top:1px solid #e0e0e0;">'
+    +'<div style="font-size:15px;font-weight:700;color:#111;margin-bottom:10px;">'+(isInv?'Bill To':'Prepared For')+'</div>'
+    +'<div style="font-size:15px;font-weight:600;color:#111;">'+doc.clientName+'</div>'
+    +addrParts.map(function(p){return'<div style="font-size:14px;color:#444;margin-top:2px;">'+p+'</div>';}).join('')
+    +((doc.mobile||doc.phone)?'<div style="font-size:14px;color:#444;margin-top:2px;">'+(doc.mobile||doc.phone)+'</div>':'')
+    +(doc.email?'<div style="font-size:14px;color:#444;margin-top:2px;">'+doc.email+'</div>':'')
     +'</div>'
-    +'<div style="text-align:right;">'
-    +(isInv?'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Payment terms</span><span style="font-size:12px;color:#333;">Within 5 days of completion</span></div>':'')
-    +'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">'+(isInv?'Invoice #':'Quote #')+'</span><span style="font-size:12px;font-weight:600;color:#111;">'+doc.ref+'</span></div>'
-    +'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Date</span><span style="font-size:12px;color:#333;">'+fdLong(doc.date)+'</span></div>'
-    +(doc.expiryDate&&!isInv?'<div style="display:flex;justify-content:space-between;gap:20px;"><span style="font-size:12px;color:#888;">Valid Until</span><span style="font-size:12px;color:#333;">'+fdLong(doc.expiryDate)+'</span></div>':'')
-    +'</div></div>'
-    // Photos (if any, shown before line items for site survey context)
+
+    // Quote/Invoice details
+    +'<div style="padding:14px 0;border-top:1px solid #e0e0e0;">'
+    +(isInv?'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:14px;"><span style="color:#555;">Payment terms</span><span style="color:#333;">Within 5 days</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:14px;"><span style="color:#555;">'+(isInv?'Invoice #':'Quote #')+'</span><span style="font-weight:600;color:#111;">'+doc.ref+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:14px;"><span style="color:#555;">Date</span><span style="color:#333;">'+fdLong(doc.date)+'</span></div>'
+    +(doc.expiryDate&&!isInv?'<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:14px;"><span style="color:#555;">Valid Until</span><span style="color:#333;">'+fdLong(doc.expiryDate)+'</span></div>':'')
+    +'</div>'
+
+    // Photos
     +photosHtml
-    // Line items table
-    +'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:100%;border-collapse:collapse;min-width:320px;">'
-    +'<thead><tr style="border-bottom:2px solid #111;">'
-    +'<th style="padding:8px 0;text-align:left;font-size:12px;font-weight:700;color:#111;">Description</th>'
-    +(showRate?'<th style="padding:8px 12px;text-align:right;font-size:12px;font-weight:700;color:#111;">Rate</th>':'')
-    +'<th style="padding:8px 12px;text-align:center;font-size:12px;font-weight:700;color:#111;">Qty</th>'
-    +'<th style="padding:8px 0;text-align:right;font-size:12px;font-weight:700;color:#111;">Total</th>'
-    +'</tr></thead><tbody>'+rows+'</tbody></table>'
+
+    // Line items
+    +'<div style="padding-top:14px;border-top:1px solid #e0e0e0;">'
+    +'<div style="font-size:15px;font-weight:700;color:#111;margin-bottom:0px;">Description</div>'
+    +'</div>'
+    +itemsHtml
+
     // Totals
-    +'<div style="display:flex;justify-content:flex-end;margin-top:8px;">'
-    +'<table style="min-width:220px;border-collapse:collapse;">'
-    +(markup>0?'<tr><td style="padding:5px 0;font-size:12px;color:#555;">Markup</td><td style="padding:5px 0 5px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(markup)+'</td></tr>':'')
-    +(discount>0?'<tr><td style="padding:5px 0;font-size:12px;color:#555;">Discount</td><td style="padding:5px 0 5px 20px;text-align:right;font-size:12px;color:#555;">-'+fmt(discount)+'</td></tr>':'')
-    +'<tr style="border-top:1px solid #e0e0e0;"><td style="padding:7px 0;font-size:13px;font-weight:700;color:#111;">Subtotal</td><td style="padding:7px 0 7px 20px;text-align:right;font-size:13px;font-weight:700;color:#111;">'+fmt(sub+markup-discount)+'</td></tr>'
-    +(vat>0?'<tr><td style="padding:5px 0;font-size:12px;color:#555;">VAT (20%)</td><td style="padding:5px 0 5px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(vat)+'</td></tr>':'')
-    +'<tr style="border-top:2px solid #111;"><td style="padding:8px 0;font-size:15px;font-weight:700;color:#111;">Total</td><td style="padding:8px 0 8px 20px;text-align:right;font-size:15px;font-weight:700;color:#111;">'+fmt(grand)+'</td></tr>'
-    +(deposit>0?'<tr><td style="padding:4px 0;font-size:12px;color:#555;">Deposit Required</td><td style="padding:4px 0 4px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(deposit)+'</td></tr>':'')
-    +(deposit>0?'<tr><td style="padding:4px 0;font-size:12px;color:#555;">Balance on Completion</td><td style="padding:4px 0 4px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(grand-deposit)+'</td></tr>':'')
-    +'</table></div></div>'
+    +'<div style="padding:16px 0;border-top:1px solid #e0e0e0;">'
+    +(markup>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:#555;">Markup</span><span>'+fmt(markup)+'</span></div>':'')
+    +(discount>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:#555;">Discount</span><span>-'+fmt(discount)+'</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:15px;font-weight:700;"><span>Subtotal</span><span>'+fmt(sub+markup-discount)+'</span></div>'
+    +(vat>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:#555;">VAT (20%)</span><span>'+fmt(vat)+'</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:17px;font-weight:700;border-top:2px solid #111;margin-top:4px;"><span>Total</span><span>'+fmt(grand)+'</span></div>'
+    +(deposit>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:#555;">Deposit Required</span><span>'+fmt(deposit)+'</span></div>':'')
+    +(deposit>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;"><span style="color:#555;">Balance on Completion</span><span>'+fmt(grand-deposit)+'</span></div>':'')
+    +'</div>'
+
     // Notes
     +notesHtml
+
     // Bank details (invoices)
     +bankDetailsHtml
-    // Guarantee Certificate (invoices with toggle on)
+
+    // Guarantee
     +guaranteeHtml
-    // Company reg footer
-    +(c.companyNo||c.vat?'<div style="margin-top:20px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#888;">'
-    +(c.companyNo?'Company Number '+c.companyNo+'  ':'')
+
+    // Company reg
+    +(c.companyNo||c.vat?'<div style="padding:14px 0;border-top:1px solid #e0e0e0;font-size:13px;color:#666;">'
+    +(c.companyNo?'Company Number '+c.companyNo+'<br>':'')
     +(c.vat?'Vat Number '+c.vat:'')
     +'</div>':'')
-    // Footer image (sig + name + contact + logos)
-    +'<div class="footer-print" style="margin-top:24px;border-top:1px solid #e0e0e0;padding-top:16px;">'
+
+    // Footer image
+    +'<div class="footer-print" style="padding:14px 0;border-top:1px solid #e0e0e0;">'
     +(logosSrc&&logosSrc.length>100?'<img src="'+logosSrc+'" style="width:100%;max-width:100%;object-fit:contain;display:block;">':'')
     +'</div>'
-    +'</div></div>'
-    // T&C + Accept section
-    +(tcHtml||acceptHtml?
-      '<div style="background:#f0f0f0;padding:16px 10px 60px;">'
-      +'<div style="background:#fff;max-width:740px;margin:12px auto;padding:24px 40px;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,0.08);">'
-      +tcHtml+acceptHtml
-      +'</div></div>':'');
+
+    +'</div>'
+
+    // T&C and Accept
+    +(tcHtml||acceptHtml?tcHtml+acceptHtml:'');
 
   if(!document.getElementById('print-styles')){
     var st=document.createElement('style');st.id='print-styles';
-    st.textContent='@media print{.no-print{display:none!important;}body{margin:0;background:#fff;}#printable-doc{box-shadow:none!important;max-width:100%!important;padding:16mm 18mm!important;}tr{page-break-inside:avoid;}thead{display:table-header-group;}.footer-print{page-break-inside:avoid;}}@media(max-width:600px){#printable-doc{padding:16px 14px!important;}}';
+    st.textContent='@media print{.no-print{display:none!important;}body{margin:0;background:#fff;}#printable-doc{max-width:100%!important;padding:16mm!important;}tr{page-break-inside:avoid;}thead{display:table-header-group;}.footer-print{page-break-inside:avoid;}}';
     document.head.appendChild(st);
   }
 
