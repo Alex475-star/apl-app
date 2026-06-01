@@ -1666,6 +1666,10 @@ function showEstModal(){
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#555;"><input type="checkbox" ${ne.vat?'checked':''} onchange="S.ne.vat=this.checked;showEstModal()"> VAT (20%)</label>
             <span>${fmt(vat)}</span>
           </div>
+          ${isInv?`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#276749;font-weight:600;font-size:13px;">
+              <input type="checkbox" ${ne.guarantee?'checked':''} onchange="S.ne.guarantee=this.checked;showEstModal()"> 🏆 Include Guarantee Certificate</label>
+          </div>`:''}
 
           <div class="tl grand" style="margin-top:6px;">
             <span>Total (GBP)</span>
@@ -3481,6 +3485,9 @@ function renderCustomerView(doc){
     // Bank details (invoices)
     +bankDetailsHtml
 
+    // Guarantee Certificate
+    +guaranteeHtml
+
     // Photos
     +photosHtml
 
@@ -3489,6 +3496,66 @@ function renderCustomerView(doc){
     +(c.companyNo?'Company Number '+c.companyNo+'  ':'')
     +(c.vat?'Vat Number '+c.vat:'')
     +'</div>':'')
+
+    // Guarantee Certificate — only on invoices with guarantee toggled on
+    var guaranteeHtml='';
+    if(isInv&&doc.guarantee){
+      var issueDate=doc.date?new Date(doc.date):new Date();
+      var validUntil=new Date(issueDate);
+      validUntil.setFullYear(validUntil.getFullYear()+2);
+      var certNum='GRT-'+doc.ref.replace(/[^0-9]/g,'');
+      var logoS=logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="height:44px;object-fit:contain;">':'<strong>Alexander Pointing Ltd</strong>';
+      guaranteeHtml='<div style="margin-top:28px;page-break-inside:avoid;">'
+        // Certificate border
+        +'<div style="border:3px solid #276749;border-radius:8px;overflow:hidden;font-family:Helvetica Neue,Arial,sans-serif;">'
+        // Gold/green header bar
+        +'<div style="background:linear-gradient(135deg,#1a2332,#276749);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">'
+        +logoS
+        +'<div style="text-align:right;">'
+        +'<div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:2px;">GUARANTEE</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">CERTIFICATE OF WORKMANSHIP</div>'
+        +'</div></div>'
+        // Certificate body
+        +'<div style="padding:20px 24px;background:#fff;">'
+        // Cert details row
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #e0e0e0;">'
+        +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Certificate No.</div>'
+        +'<div style="font-size:14px;font-weight:700;color:#111;">'+certNum+'</div></div>'
+        +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Issued To</div>'
+        +'<div style="font-size:14px;font-weight:700;color:#111;">'+doc.clientName+'</div></div>'
+        +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Property</div>'
+        +'<div style="font-size:13px;color:#333;">'+(doc.serviceAddress||doc.address||'As per invoice')+'</div></div>'
+        +'<div><div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Guarantee Period</div>'
+        +'<div style="font-size:13px;color:#333;">'+issueDate.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+' – '+validUntil.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})+'</div></div>'
+        +'</div>'
+        // Guarantee terms
+        +'<div style="font-size:12px;color:#444;line-height:1.7;margin-bottom:16px;">'
+        +'<p style="margin:0 0 10px;"><strong>What is covered:</strong> Alexander Pointing Ltd guarantees all repointing works carried out to the external elevations of the above property against defects or premature decay of mortar for a period of <strong>2 years</strong> from the date of the original invoice. Defects are defined as mortar that has become loose, missing, or has worn significantly.</p>'
+        +'<p style="margin:0 0 10px;">Where defects are identified, remedial works will be carried out within 28 days of receiving written notification, subject to weather conditions permitting.</p>'
+        +'<p style="margin:0 0 6px;"><strong>Exclusions — this guarantee does not cover:</strong></p>'
+        +'<ul style="margin:0 0 10px;padding-left:18px;">'
+        +'<li>Natural wear from wind, rain, frost or other elements</li>'
+        +'<li>Structural change or movement to the building</li>'
+        +'<li>Third party damage, accidental or intentional</li>'
+        +'<li>Acts of God</li>'
+        +'<li>Damage caused by leaking gutters or downpipes</li>'
+        +'<li>Any repointing carried out by anyone other than Alexander Pointing Ltd</li>'
+        +'<li>Pollutants including exhaust fumes, gritting salt, moss, algae or lichens</li>'
+        +'</ul>'
+        +'<p style="margin:0 0 10px;">This guarantee applies to the original customer only and is not transferable upon sale of the property.</p>'
+        +'</div>'
+        // Payment condition — prominent warning box
+        +'<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:12px 14px;margin-bottom:16px;">'
+        +'<div style="font-size:12px;color:#92400e;font-weight:700;margin-bottom:3px;">⚠️ Conditional on Payment</div>'
+        +'<div style="font-size:12px;color:#78350f;line-height:1.6;">This guarantee becomes valid upon receipt of payment in full for the works described on the invoice. Until full payment is received, this guarantee is void.</div>'
+        +'</div>'
+        // Signature row
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:1px solid #e0e0e0;">'
+        +'<div style="font-size:11px;color:#555;">Issued by Alexander Pointing Ltd<br>Company No: '+(c.companyNo||'87688895')+'  ·  VAT: '+(c.vat||'185650778')+'</div>'
+        +'<div style="font-size:11px;color:#888;text-align:right;font-style:italic;">Subject to Alexander Pointing Ltd Terms & Conditions of Service</div>'
+        +'</div>'
+        +'</div></div></div>';
+    }
 
     // Footer — use the complete footer image (sig + name + contact + logos all in one)
     +'<div class="footer-print" style="margin-top:24px;border-top:1px solid #e0e0e0;padding-top:16px;">'
