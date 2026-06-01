@@ -3384,24 +3384,136 @@ function custClearSig(){
   if(c){c.getContext('2d').clearRect(0,0,c.width,c.height);}
 }
 
+function buildDesktopHtml(doc){
+  var c=S.co;
+  var logoSrc=(document.getElementById('apl-logo-img')||{src:''}).src;
+  var logosSrc=(document.getElementById('apl-footer-img')||{src:''}).src;
+  var isInv=doc.ref.includes('invoice');
+  var sub=tot(doc.lineItems);
+  var markup=calcMarkup(doc);
+  var discount=calcDiscount(doc);
+  var vat=doc.vat?(sub+markup-discount)*0.2:0;
+  var grand=calcGrandTotal(doc);
+  var deposit=calcDeposit(doc);
+  var bankItem=(doc.lineItems||[]).find(function(li){return(li.name||'').toLowerCase().includes('bank detail');});
+  var lineItems=(doc.lineItems||[]).filter(function(li){return!(li.name||'').toLowerCase().includes('bank detail');});
+  var showRate=lineItems.some(function(li){return li.rate>0;});
+  var addrParts=(doc.serviceAddress||doc.address||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+
+  var rows=lineItems.map(function(li){
+    var lt=li.rate*li.qty;
+    return'<tr>'
+      +'<td style="padding:10px 0;border-bottom:1px solid #e5e5e5;vertical-align:top;">'
+      +'<div style="font-size:13px;font-weight:600;color:#111;">'+li.name+'</div>'
+      +(li.desc?'<div style="font-size:12px;color:#555;line-height:1.6;margin-top:3px;">'+li.desc+'</div>':'')
+      +'</td>'
+      +(showRate?'<td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;vertical-align:top;font-size:13px;white-space:nowrap;color:#444;">'+(li.rate>0?fmt(li.rate):'-')+'</td>':'')
+      +'<td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:center;vertical-align:top;font-size:13px;color:#444;">'+li.qty+'</td>'
+      +'<td style="padding:10px 0;border-bottom:1px solid #e5e5e5;text-align:right;vertical-align:top;font-size:13px;font-weight:700;white-space:nowrap;">'+(lt>0?fmt(lt):'-')+'</td>'
+      +'</tr>';
+  }).join('');
+
+  var bdHtml='';
+  if(isInv){
+    var bd=bankItem?bankItem.desc:'Alexander Pointing Ltd\nNatWest\nAccount: 18135382\nSort Code: 01-01-42';
+    bdHtml='<div style="margin-top:16px;padding:12px;background:#f7f9f7;border:1px solid #dde8dd;border-radius:4px;font-size:12px;">'
+      +'<strong style="color:#276749;">Payment Details</strong><br>'
+      +bd.split('\n').join('<br>')
+      +'<br><em style="color:#666;font-size:11px;">Payment due within 5 days of completion.</em></div>';
+  }
+
+  var notesHtml=doc.notes?'<div style="margin-top:14px;"><strong style="font-size:12px;color:#555;">Notes</strong><br><div style="font-size:12px;color:#333;line-height:1.6;margin-top:4px;">'+doc.notes.split('\n').join('<br>')+'</div></div>':'';
+
+  var logoImg=logoSrc&&logoSrc.length>100?'<img src="'+logoSrc+'" style="max-height:55px;max-width:160px;object-fit:contain;">':'<strong style="font-size:16px;">'+c.companyName+'</strong>';
+
+  return'<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Helvetica Neue,Arial,sans-serif;color:#222;background:#fff;padding:20mm 18mm;font-size:13px;}table{border-collapse:collapse;width:100%;}</style></head><body>'
+    +'<div style="text-align:center;font-size:14px;font-weight:300;color:#bbb;letter-spacing:4px;text-transform:uppercase;margin-bottom:24px;">'+(isInv?'INVOICE':'QUOTE')+'</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">'
+    +logoImg
+    +'<div style="text-align:right;">'
+    +'<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">'+(isInv?'Bill To':'Prepared For')+'</div>'
+    +'<div style="font-size:14px;font-weight:700;">'+doc.clientName+'</div>'
+    +addrParts.map(function(p){return'<div style="font-size:12px;color:#444;margin-top:2px;">'+p+'</div>';}).join('')
+    +((doc.mobile||doc.phone)?'<div style="font-size:12px;color:#444;margin-top:2px;">'+(doc.mobile||doc.phone)+'</div>':'')
+    +(doc.email?'<div style="font-size:12px;color:#444;margin-top:2px;">'+doc.email+'</div>':'')
+    +'</div></div>'
+    +'<hr style="border:none;border-top:1px solid #e0e0e0;margin-bottom:18px;">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:24px;gap:16px;">'
+    +'<div>'
+    +'<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+c.companyName+'</div>'
+    +(c.address?'<div style="font-size:12px;color:#555;">'+c.address+'</div>':'')
+    +((c.city||c.postcode)?'<div style="font-size:12px;color:#555;">'+(c.city?c.city+' ':'')+(c.postcode||'')+'</div>':'')
+    +(c.phone?'<div style="font-size:12px;color:#555;">Phone: '+c.phone+'</div>':'')
+    +(c.email?'<div style="font-size:12px;color:#555;">Email: '+c.email+'</div>':'')
+    +(c.website?'<div style="font-size:12px;color:#555;">Web: '+c.website+'</div>':'')
+    +'</div>'
+    +'<div style="text-align:right;">'
+    +(isInv?'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Payment terms</span><span style="font-size:12px;">Within 5 days</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">'+(isInv?'Invoice #':'Quote #')+'</span><span style="font-size:12px;font-weight:600;">'+doc.ref+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:3px;"><span style="font-size:12px;color:#888;">Date</span><span style="font-size:12px;">'+fdLong(doc.date)+'</span></div>'
+    +(doc.expiryDate&&!isInv?'<div style="display:flex;justify-content:space-between;gap:20px;"><span style="font-size:12px;color:#888;">Valid Until</span><span style="font-size:12px;">'+fdLong(doc.expiryDate)+'</span></div>':'')
+    +'</div></div>'
+    +'<table>'
+    +'<thead><tr style="border-bottom:2px solid #111;">'
+    +'<th style="padding:8px 0;text-align:left;font-size:11px;font-weight:700;color:#111;">Description</th>'
+    +(showRate?'<th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#111;">Rate</th>':'')
+    +'<th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:700;color:#111;">Qty</th>'
+    +'<th style="padding:8px 0;text-align:right;font-size:11px;font-weight:700;color:#111;">Total</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div style="display:flex;justify-content:flex-end;margin-top:8px;">'
+    +'<table style="min-width:200px;border-collapse:collapse;">'
+    +(markup>0?'<tr><td style="padding:5px 0;font-size:12px;color:#555;">Markup</td><td style="padding:5px 0 5px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(markup)+'</td></tr>':'')
+    +(discount>0?'<tr><td style="padding:5px 0;font-size:12px;color:#555;">Discount</td><td style="padding:5px 0 5px 20px;text-align:right;font-size:12px;color:#555;">-'+fmt(discount)+'</td></tr>':'')
+    +'<tr style="border-top:1px solid #e0e0e0;"><td style="padding:7px 0;font-size:13px;font-weight:700;">Subtotal</td><td style="padding:7px 0 7px 20px;text-align:right;font-size:13px;font-weight:700;">'+fmt(sub+markup-discount)+'</td></tr>'
+    +(vat>0?'<tr><td style="padding:5px 0;font-size:12px;color:#555;">VAT (20%)</td><td style="padding:5px 0 5px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(vat)+'</td></tr>':'')
+    +'<tr style="border-top:2px solid #111;"><td style="padding:8px 0;font-size:15px;font-weight:700;">Total</td><td style="padding:8px 0 8px 20px;text-align:right;font-size:15px;font-weight:700;">'+fmt(grand)+'</td></tr>'
+    +(deposit>0?'<tr><td style="padding:4px 0;font-size:12px;color:#555;">Deposit Required</td><td style="padding:4px 0 4px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(deposit)+'</td></tr>':'')
+    +(deposit>0?'<tr><td style="padding:4px 0;font-size:12px;color:#555;">Balance on Completion</td><td style="padding:4px 0 4px 20px;text-align:right;font-size:12px;color:#555;">'+fmt(grand-deposit)+'</td></tr>':'')
+    +'</table></div>'
+    +notesHtml
+    +bdHtml
+    +(c.companyNo||c.vat?'<div style="margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#888;">'
+    +(c.companyNo?'Company Number '+c.companyNo+'  ':'')
+    +(c.vat?'Vat Number '+c.vat:'')
+    +'</div>':'')
+    +'<div style="margin-top:20px;border-top:1px solid #e0e0e0;padding-top:14px;">'
+    +(logosSrc&&logosSrc.length>100?'<img src="'+logosSrc+'" style="width:100%;max-width:100%;object-fit:contain;">':'')
+    +'</div>'
+    +'</body></html>';
+}
+
 function downloadPdf(){
-  var el=document.getElementById('printable-doc');
-  if(!el){window.print();return;}
+  var doc=S.custDoc;if(!doc)return;
+  var html=buildDesktopHtml(doc);
+  var fname=doc.ref+'.pdf';
+  function doConvert(){
+    var tmp=document.createElement('div');
+    tmp.style.cssText='position:fixed;left:-9999px;top:0;width:210mm;background:#fff;';
+    tmp.innerHTML=html;
+    document.body.appendChild(tmp);
+    html2pdf().set({
+      margin:0,filename:fname,
+      image:{type:'jpeg',quality:0.97},
+      html2canvas:{scale:2,useCORS:true,logging:false,width:794},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+    }).from(tmp).save().then(function(){document.body.removeChild(tmp);});
+  }
   if(typeof html2pdf==='undefined'){
     var scr=document.createElement('script');
     scr.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    scr.onload=function(){runCustPdf(el);};
-    document.head.appendChild(scr);
-  } else {runCustPdf(el);}
+    scr.onload=doConvert;document.head.appendChild(scr);
+  } else {doConvert();}
 }
-function runCustPdf(el){
-  var fname=(S.custDoc?S.custDoc.ref:'document')+'.pdf';
-  html2pdf().set({
-    margin:8,filename:fname,
-    image:{type:'jpeg',quality:0.95},
-    html2canvas:{scale:2,useCORS:true,logging:false},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-  }).from(el).save();
+
+function printDesktop(){
+  var doc=S.custDoc;if(!doc)return;
+  var html=buildDesktopHtml(doc);
+  var w=window.open('','_blank');
+  if(!w){alert('Please allow popups for this site to print.');return;}
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();},800);
 }
 
 
@@ -3547,7 +3659,7 @@ function renderCustomerView(doc){
     +'<div id="more-actions-dd" style="display:none;border-top:1px solid #e0e0e0;">'
     +'<div onclick="downloadPdf()" style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #f0f0f0;cursor:pointer;font-size:15px;color:#333;">'
     +'<span style="font-size:18px;">&#x2B07;&#xFE0F;</span>Download PDF</div>'
-    +'<div onclick="window.print()" style="padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;font-size:15px;color:#333;">'
+    +'<div onclick="printDesktop()" style="padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;font-size:15px;color:#333;">'
     +'<span style="font-size:18px;">&#x1F5A8;&#xFE0F;</span>View &amp; Print PDF</div>'
     +'</div></div>'
 
