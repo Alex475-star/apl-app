@@ -3641,6 +3641,50 @@ function renderCustomerView(doc){
   // More actions state
   if(!window._moreActionsOpen)window._moreActionsOpen=false;
 
+  // Desktop layout for laptops/desktop — mobile layout for phones/tablets
+  if(window.innerWidth>768){
+    var deskHtml=buildDesktopHtml(doc);
+    body.innerHTML=
+      '<div class="no-print" style="background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:10px 16px;display:flex;gap:10px;justify-content:flex-end;align-items:center;position:sticky;top:0;z-index:10;">'
+      +'<button onclick="downloadPdf()" style="background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;padding:8px 16px;font-size:13px;cursor:pointer;">&#x2B07;&#xFE0F; Download PDF</button>'
+      +'<button onclick="printDesktop()" style="background:#276749;color:#fff;border:none;border-radius:4px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;">&#x1F5A8;&#xFE0F; Print</button>'
+      +'</div>'
+      +'<div style="background:#f0f0f0;min-height:100%;padding:20px 12px 60px;">'
+      +'<div id="printable-doc" style="background:#fff;max-width:740px;margin:0 auto;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,0.08);">'
+      +deskHtml.replace(/^<!DOCTYPE html>[\s\S]*?<body>/,'').replace(/<\/body>[\s\S]*?<\/html>$/,'')
+      +'</div></div>'
+      +(acceptHtml||tcHtml?'<div style="background:#f0f0f0;padding:0 12px 60px;"><div style="background:#fff;max-width:740px;margin:0 auto;padding:24px 40px;font-family:Helvetica Neue,Arial,sans-serif;box-shadow:0 1px 6px rgba(0,0,0,0.08);">'+tcHtml+acceptHtml+'</div></div>':'');
+    if(!document.getElementById('print-styles')){
+      var st=document.createElement('style');st.id='print-styles';
+      st.textContent='@media print{.no-print{display:none!important;}body{margin:0;background:#fff;}}';
+      document.head.appendChild(st);
+    }
+    setTimeout(function(){
+      var canvas=document.getElementById('cust-sig-canvas');
+      if(canvas){
+        var ctx=canvas.getContext('2d');
+        canvas.width=canvas.offsetWidth*(window.devicePixelRatio||1);
+        canvas.height=canvas.offsetHeight*(window.devicePixelRatio||1);
+        ctx.scale(window.devicePixelRatio||1,window.devicePixelRatio||1);
+        var drawing=false;
+        function getPos(e){var r=canvas.getBoundingClientRect();var cl=e.touches?e.touches[0]:e;return{x:cl.clientX-r.left,y:cl.clientY-r.top};}
+        canvas.addEventListener('mousedown',function(e){drawing=true;var p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+        canvas.addEventListener('mousemove',function(e){if(!drawing)return;ctx.strokeStyle='#111';ctx.lineWidth=1.5;ctx.lineCap='round';var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+        canvas.addEventListener('mouseup',function(){drawing=false;});
+        canvas.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;var p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+        canvas.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;ctx.strokeStyle='#111';ctx.lineWidth=1.5;ctx.lineCap='round';var p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();},{passive:false});
+        canvas.addEventListener('touchend',function(){drawing=false;});
+      }
+      var acceptBtn=document.getElementById('accept-quote-btn');
+      if(acceptBtn){
+        function handleAcceptD(e){e.preventDefault();e.stopPropagation();if(acceptBtn.dataset.submitting)return;acceptBtn.dataset.submitting='1';acceptBtn.disabled=true;acceptBtn.style.opacity='0.6';acceptBtn.textContent='Submitting...';submitCustSignature(S.custDoc?S.custDoc.ref:window._custRef);}
+        acceptBtn.addEventListener('touchend',handleAcceptD,{passive:false});
+        acceptBtn.addEventListener('click',handleAcceptD);
+      }
+    },200);
+    return;
+  }
+
   body.innerHTML=
     // More Actions bar (replaces old toolbar)
     '<div class="no-print" id="more-actions-bar" style="background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10;">'
