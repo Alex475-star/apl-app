@@ -3922,17 +3922,23 @@ applyMobileLayout();
         if(!remoteDoc.invoiceFooter)remoteDoc.invoiceFooter=S.co.invoiceFooter||'';
         // Attach T&C from company settings (now available since META loaded first)
         if(!remoteDoc.quoteTC)remoteDoc.quoteTC=S.co.quoteTC||'';
-        // Real view tracking
+        // Real view tracking — primary POST is AWAITED so it can never land
+        // AFTER (and overwrite) a signature submission. Without this, on slower
+        // connections the tracking write can complete after the sign write and
+        // wipe out the customer's signature.
         const isInvoiceDoc=remoteDoc.ref&&remoteDoc.ref.includes('invoice');
+        var trackingDone=Promise.resolve();
         if(!remoteDoc.signature||isInvoiceDoc){
           const wasFirst=!remoteDoc.emailOpened&&(remoteDoc.viewCount||0)===0;
           remoteDoc.viewCount=(remoteDoc.viewCount||0)+1;
           remoteDoc.emailOpened=true;
           const table=remoteDoc.ref.includes('invoice')?'invoices':'estimates';
           const trkHdrs={'Content-Type':'application/json','apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON,'Prefer':'resolution=merge-duplicates,return=minimal'};
-          // Update the doc row using POST upsert (same method that works for estimates)
-          fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:trkHdrs,body:JSON.stringify([{ref:remoteDoc.ref,data:remoteDoc}])});
-          // Write activity directly to META row using POST upsert (guaranteed to work)
+          // Update the doc row using POST upsert — AWAITED before render so signing
+          // (which happens after render) can never race with this write.
+          trackingDone=fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:trkHdrs,body:JSON.stringify([{ref:remoteDoc.ref,data:remoteDoc}])}).catch(function(){});
+          // Write activity directly to META row using POST upsert — different row,
+          // safe to fire in the background without blocking render.
           if(wasFirst){
             fetch(SUPA_URL+'/rest/v1/estimates?select=data&ref=eq._META_',{headers:{'apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON}})
               .then(function(r){return r.json();})
@@ -3948,7 +3954,7 @@ applyMobileLayout();
           }
           // Opened notification removed — activity feed handles this in-app
         }
-        renderCustomerView(remoteDoc);
+        trackingDone.then(function(){renderCustomerView(remoteDoc);});
       } else {
         document.getElementById('cust-body').innerHTML='<div style="text-align:center;padding:60px 20px;"><div style="font-size:32px;margin-bottom:16px;">❌</div><div style="font-size:16px;color:#555;">Quote not found.<br>Please contact Alexander Pointing Ltd.</div><a href="tel:01613272843" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#276749;color:#fff;border-radius:8px;font-size:15px;text-decoration:none;">📞 Call Us</a></div>';
       }
