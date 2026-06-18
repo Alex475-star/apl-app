@@ -114,7 +114,7 @@ body{-webkit-user-select:none;user-select:none;}
 input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-select:text;user-select:text;}
 .app{display:flex;height:100vh;}
 .sb{width:240px;background:#1a2332;display:none;flex-direction:column;flex-shrink:0;}
-.lt{color:#fff;font-size:14px;font-weight:700;line-height:1.3;padding:16px 14px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.lt{color:#fff;font-size:14px;font-weight:700;line-height:1.3;padding:calc(16px + env(safe-area-inset-top,0px)) 14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
 .nav{padding:10px 0;flex:1;}
 .ni{display:flex;align-items:center;gap:10px;padding:9px 14px;color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;border-left:3px solid transparent;transition:all 0.15s;user-select:none;-webkit-user-select:none;outline:none;}
 .ni:hover{color:#fff;background:rgba(255,255,255,0.05);}
@@ -122,7 +122,7 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .ni svg{width:15px;height:15px;flex-shrink:0;}
 .ni-badge{background:#c62828;color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;margin-left:auto;}
 .mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:calc(12px + env(safe-area-inset-top,0px)) 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .topbar h1{font-size:17px;font-weight:600;color:#111;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
 .bell-btn{position:relative;cursor:pointer;padding:4px;border-radius:6px;color:#666;}
@@ -3658,7 +3658,7 @@ function renderCustomerView(doc){
     var blobUrl=URL.createObjectURL(blob);
     // Calculate iframe height after load
     body.innerHTML=
-      '<div class="no-print" style="background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:10px 20px;display:flex;gap:10px;justify-content:flex-end;align-items:center;">'
+      '<div class="no-print" style="background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:calc(10px + env(safe-area-inset-top,0px)) 20px 10px;display:flex;gap:10px;justify-content:flex-end;align-items:center;">'
       +'<button onclick="downloadPdf()" style="background:#fff;color:#333;border:1px solid #ccc;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer;">&#x2B07;&#xFE0F; Download PDF</button>'
       +'<button onclick="printDesktop()" style="background:#276749;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;">&#x1F5A8;&#xFE0F; Print</button>'
       +'</div>'
@@ -3699,7 +3699,7 @@ function renderCustomerView(doc){
 
   body.innerHTML=
     // More Actions bar (replaces old toolbar)
-    '<div class="no-print" id="more-actions-bar" style="background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10;">'
+    '<div class="no-print" id="more-actions-bar" style="background:#fff;border-bottom:1px solid #e0e0e0;position:sticky;top:0;z-index:10;padding-top:env(safe-area-inset-top,0px);">'
     +'<div onclick="window._moreActionsOpen=!window._moreActionsOpen;var d=document.getElementById(\'more-actions-dd\');d.style.display=window._moreActionsOpen?\'block\':\'none\';" '
     +'style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:15px;font-weight:600;color:#333;">'
     +'<span>More Actions</span><span style="font-size:12px;">&#9660;</span></div>'
