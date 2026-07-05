@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="APL">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a2332">
+<meta name="theme-color" content="#1c2940">
 <link id="apl-icon" rel="apple-touch-icon" href="">
 <link rel="icon" id="apl-favicon" href="">
 <script>
@@ -80,8 +80,8 @@
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f0f0ed;height:100vh;overflow:hidden;}
 
 /* --- Login Screen --- */
-.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a2332 0%,#243447 60%,#1a2332 100%);display:none;align-items:center;justify-content:center;z-index:1000;}
-.login-box{background:#fff;border-radius:16px;padding:36px 32px;width:340px;box-shadow:0 24px 80px rgba(0,0,0,0.4);}
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1c2940 0%,#27395c 60%,#1c2940 100%);display:none;align-items:center;justify-content:center;z-index:1000;}
+.login-box{background:#fff;border-radius:12px;padding:36px 32px;width:340px;box-shadow:0 24px 80px rgba(0,0,0,0.4);}
 .login-logo{font-size:22px;font-weight:800;color:#1a2332;line-height:1.2;margin-bottom:4px;}
 .login-sub{font-size:12px;color:#888;margin-bottom:28px;}
 .login-field{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;}
@@ -113,30 +113,30 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f0f0
 body{-webkit-user-select:none;user-select:none;}
 input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-select:text;user-select:text;}
 .app{display:flex;height:100vh;}
-.sb{width:240px;background:#1a2332;display:none;flex-direction:column;flex-shrink:0;}
+.sb{width:240px;background:#1c2940;display:none;flex-direction:column;flex-shrink:0;}
 .lt{color:#fff;font-size:14px;font-weight:700;line-height:1.3;padding:calc(16px + env(safe-area-inset-top,0px)) 14px 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
 .nav{padding:10px 0;flex:1;}
-.ni{display:flex;align-items:center;gap:10px;padding:9px 14px;color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;border-left:3px solid transparent;transition:all 0.15s;user-select:none;-webkit-user-select:none;outline:none;}
+.ni{display:flex;align-items:center;gap:10px;padding:11px 14px;margin:1px 8px;border-radius:8px;color:rgba(255,255,255,0.65);cursor:pointer;font-size:14px;transition:all 0.15s;user-select:none;-webkit-user-select:none;}
 .ni:hover{color:#fff;background:rgba(255,255,255,0.05);}
-.ni.active{color:#4ade80;border-left-color:#4ade80;background:rgba(74,222,128,0.08);}
+.ni.active{color:#7deca8;background:rgba(74,222,128,0.14);font-weight:600;}
 .ni svg{width:15px;height:15px;flex-shrink:0;}
 .ni-badge{background:#c62828;color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;margin-left:auto;}
 .mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:calc(12px + env(safe-area-inset-top,0px)) 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.topbar h1{font-size:17px;font-weight:600;color:#111;}
+.topbar h1{font-size:20px;font-weight:700;color:#141414;letter-spacing:-0.01em;}
 .topbar-right{display:flex;align-items:center;gap:10px;}
 .bell-btn{position:relative;cursor:pointer;padding:4px;border-radius:6px;color:#666;}
 .bell-btn:hover{background:#f5f5f5;}
 .bell-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:#c62828;border-radius:50%;display:none;}
-.bg{background:#276749;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.15s;}
+.bg{background:#276749;color:#fff;border:none;padding:11px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;min-height:42px;}
 .bg:hover{background:#1e5238;}
-.bs{background:transparent;color:#555;border:1px solid #ddd;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;}
+.bs{background:#fff;color:#444;border:1px solid #d5d5d0;padding:11px 20px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;min-height:42px;}
 .bs:hover{background:#f5f5f5;}
 .content{flex:1;overflow-y:auto;padding:16px 20px;}
 .tabs{display:flex;background:#fff;border-bottom:1px solid #e5e5e0;padding:0 20px;flex-shrink:0;}
-.tab{padding:10px 16px;font-size:12px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;}
+.tab{padding:12px 16px;font-size:13px;font-weight:600;color:#75756e;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s;}
 .tab.active{color:#276749;border-bottom-color:#276749;}
-.si{padding:8px 12px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fff;color:#111;width:100%;}
+.si{padding:10px 12px;border:1px solid #d5d5d0;border-radius:6px;font-size:16px;background:#fff;color:#111;width:100%;min-height:42px;}
 .si:focus{outline:none;border-color:#276749;}
 .list-box{background:#fff;border:1px solid #e5e5e0;border-radius:10px;overflow:hidden;margin-bottom:18px;}
 .row-wrap{position:relative;overflow:hidden;border-radius:8px;margin-bottom:1px;}
@@ -144,21 +144,21 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .row-content{position:relative;background:#fff;transition:transform 0.18s ease;will-change:transform;}
 .row-hover-del{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:#ffebee;border:1px solid #fecdd3;color:#c62828;border-radius:6px;padding:5px 10px;font-size:13px;cursor:pointer;opacity:0;transition:opacity 0.15s;pointer-events:none;}
 .row-content:hover .row-hover-del{opacity:1;pointer-events:auto;}
-.list-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f0f0ed;cursor:pointer;transition:background 0.1s;}
+.list-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f0f0ed;cursor:pointer;transition:background 0.1s;}
 .list-row:last-child{border-bottom:none;}
 .list-row:hover{background:#f9f9f7;}
-.list-name{font-weight:600;font-size:14px;color:#111;}
-.list-sub{font-size:12px;color:#888;margin-top:2px;}
+.list-name{font-weight:600;font-size:15px;color:#141414;}
+.list-sub{font-size:12px;color:#75756e;margin-top:2px;}
 .list-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.list-amt{font-weight:700;font-size:14px;color:#111;}
-.bdg{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:0.3px;}
+.list-amt{font-weight:700;font-size:15px;color:#141414;font-variant-numeric:tabular-nums;}
+.bdg{font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;letter-spacing:0.03em;}
 .b-issued{background:#e8f0fe;color:#1a56db;}
-.b-pending{background:#fff8e1;color:#b45309;}
+.b-pending{background:#f7efdc;color:#8a5a0b;}
 .b-approved{background:#dcfce7;color:#166534;}
 .b-declined{background:#fce7f3;color:#9d174d;}
-.b-overdue{background:#c62828;color:#fff;}
-.b-active{background:#fef3c7;color:#92400e;}
-.b-paid{background:#dcfce7;color:#166534;}
+.b-overdue{background:#fdeaea;color:#a32d2d;}
+.b-active{background:#e3edf7;color:#1d4c73;}
+.b-paid{background:#e3f2ea;color:#1d5c3f;}
 .b-draft{background:#f3f4f6;color:#6b7280;}
 .month-label{font-size:13px;font-weight:700;color:#111;margin-bottom:8px;margin-top:4px;}
 .month-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
@@ -191,7 +191,7 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
   .bg{padding:8px 12px;font-size:13px;}
   .bs{padding:8px 10px;font-size:12px;}
   .metric-grid{grid-template-columns:repeat(2,1fr) !important;gap:8px;}
-  .metric-val{font-size:18px;}
+  .metric-val{font-size:26px;font-weight:700;letter-spacing:-0.01em;font-variant-numeric:tabular-nums;color:#141414;}
   .dash-grid{grid-template-columns:1fr;}
   .modal-overlay{padding:0;align-items:flex-end;}
   .modal{width:100%;max-width:100%;max-height:92vh;border-radius:16px 16px 0 0;}
@@ -217,14 +217,14 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .month-total{font-size:13px;font-weight:700;color:#111;}
 .empty{text-align:center;padding:40px 20px;color:#888;font-size:13px;}
 .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;width:100%;}
-.metric{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:14px 16px;cursor:pointer;}
+.metric{background:#fff;border:none;border-radius:12px;padding:18px 20px;cursor:pointer;box-shadow:0 1px 3px rgba(16,24,40,0.07);}
 .metric:hover{border-color:#276749;}
-.metric-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
+.metric-label{font-size:11px;font-weight:600;color:#75756e;text-transform:uppercase;letter-spacing:0.06em;}
 .metric-val{font-size:22px;font-weight:700;margin-top:4px;}
-.metric-sub{font-size:11px;color:#888;margin-top:2px;}
+.metric-sub{font-size:12px;color:#75756e;margin-top:4px;}
 .dash-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;}
-.dash-card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:14px;}
-.dash-card-title{font-size:13px;font-weight:600;margin-bottom:12px;color:#111;}
+.dash-card{background:#fff;border:none;border-radius:12px;padding:18px 20px;box-shadow:0 1px 3px rgba(16,24,40,0.07);}
+.dash-card-title{font-size:14px;font-weight:600;margin-bottom:14px;color:#141414;}
 .act-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0ed;}
 .act-item:last-child{border-bottom:none;}
 .act-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;}
@@ -242,9 +242,9 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .modal-tab{padding:12px 18px;font-size:13px;font-weight:600;color:#888;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
 .modal-tab.active{color:#276749;border-bottom-color:#276749;}
 .fl{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
-.fl label{font-size:11px;color:#888;font-weight:500;}
-.fi{padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff;color:#111;width:100%;}
-.fi:focus{outline:none;border-color:#276749;}
+.fl label{font-size:11px;color:#75756e;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.fi{padding:10px 12px;border:1px solid #d5d5d0;border-radius:6px;font-size:16px;background:#fff;color:#111;width:100%;min-height:42px;}
+.fi:focus,.ta:focus,.si:focus{outline:none;border-color:#276749;box-shadow:0 0 0 3px rgba(39,103,73,0.12);}
 .tc{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .lih{display:grid;grid-template-columns:1fr 90px 70px 60px 80px 20px;gap:6px;font-size:11px;color:#888;padding:0 6px 6px;border-bottom:1px solid #e5e5e0;margin-bottom:6px;}
 .lir{display:grid;grid-template-columns:1fr 90px 70px 60px 80px 20px;gap:6px;padding:5px 6px;border-radius:6px;align-items:center;}
@@ -256,11 +256,11 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
 .items-picker{border:1px solid #276749;border-radius:10px;padding:8px;margin-top:8px;max-height:320px;overflow-y:auto;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.12);}
 .item-row{padding:14px 12px;border-radius:5px;cursor:pointer;font-size:15px;color:#111;border-bottom:1px solid #f0f0ed;}
 .item-row:hover{background:#f0faf4;color:#276749;}
-.ta{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;color:#111;resize:vertical;min-height:55px;font-family:inherit;}
+.ta{width:100%;padding:10px 12px;border:1px solid #d5d5d0;border-radius:6px;font-size:16px;color:#111;resize:vertical;min-height:64px;font-family:inherit;}
 .ta:focus{outline:none;border-color:#276749;}
 .totals-box{width:220px;}
-.tl{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#555;}
-.tl.grand{font-weight:700;font-size:15px;color:#111;border-top:1px solid #e5e5e0;padding-top:8px;margin-top:4px;}
+.tl{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;color:#555;font-variant-numeric:tabular-nums;}
+.tl.grand{font-weight:700;font-size:16px;color:#141414;border-top:1px solid #e5e5e0;padding-top:8px;margin-top:4px;font-variant-numeric:tabular-nums;}
 .client-box{border:2px dashed #276749;border-radius:10px;padding:14px;cursor:pointer;min-height:80px;display:flex;align-items:center;background:#fafff9;}
 .client-box:hover{background:#f0faf4;}
 .csb{border:1px solid #276749;border-radius:10px;max-height:280px;overflow-y:auto;margin-top:8px;box-shadow:0 4px 16px rgba(0,0,0,0.10);}
@@ -1315,22 +1315,19 @@ function rDash(m){
 
     <!-- 3 Metric Cards -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
-      <div class="metric" onclick="nav('invoices')" style="border-top:3px solid #ef4444;cursor:pointer;">
-        <div style="font-size:20px;margin-bottom:4px;">💰</div>
+      <div class="metric" onclick="nav('invoices')" style="cursor:pointer;">
         <div class="metric-label">Outstanding</div>
-        <div class="metric-val" style="color:#c62828;font-size:22px;filter:${pm?'blur(8px)':'none'}">${fmt(outstanding)}</div>
+        <div class="metric-val" style="color:#c62828;filter:${pm?'blur(8px)':'none'}">${fmt(outstanding)}</div>
         <div class="metric-sub">${aInvs.length} active invoice${aInvs.length!==1?'s':''}</div>
       </div>
-      <div class="metric" onclick="nav('invoices')" style="border-top:3px solid #276749;cursor:pointer;">
-        <div style="font-size:20px;margin-bottom:4px;">✅</div>
+      <div class="metric" onclick="nav('invoices')" style="cursor:pointer;">
         <div class="metric-label">Paid This Month</div>
-        <div class="metric-val" style="color:#276749;font-size:22px;filter:${pm?'blur(8px)':'none'}">${fmt(paidMo)}</div>
+        <div class="metric-val" style="color:#276749;filter:${pm?'blur(8px)':'none'}">${fmt(paidMo)}</div>
         <div class="metric-sub">${mn[tm]} ${ty}</div>
       </div>
-      <div class="metric" onclick="nav('estimates')" style="border-top:3px solid #1565c0;cursor:pointer;">
-        <div style="font-size:20px;margin-bottom:4px;">📋</div>
+      <div class="metric" onclick="nav('estimates')" style="cursor:pointer;">
         <div class="metric-label">Pending Quotes</div>
-        <div class="metric-val" style="font-size:22px;">${pEsts}</div>
+        <div class="metric-val" style="">${pEsts}</div>
         <div class="metric-sub">awaiting response</div>
       </div>
     </div>
@@ -2763,25 +2760,21 @@ function rReports(m){
     <!-- Headline Metrics -->
     <div class="metric-grid" style="margin-bottom:20px;">
       <div class="metric" style="border-top:3px solid #276749;">
-        <div style="font-size:20px;margin-bottom:4px;">📅</div>
         <div class="metric-label">This Month</div>
         <div class="metric-val" style="color:#276749;">${fmt(thisMonthRev)}</div>
         <div class="metric-sub">${thisMonthInvs.length} job${thisMonthInvs.length!==1?'s':''} paid</div>
       </div>
       <div class="metric" style="border-top:3px solid #1565c0;">
-        <div style="font-size:20px;margin-bottom:4px;">📆</div>
         <div class="metric-label">Last Month</div>
         <div class="metric-val" style="color:#1565c0;">${fmt(lastMonthRev)}</div>
         <div class="metric-sub">${mn[lm]} ${ly}</div>
       </div>
       <div class="metric" style="border-top:3px solid #6d28d9;">
-        <div style="font-size:20px;margin-bottom:4px;">📈</div>
         <div class="metric-label">Year to Date</div>
         <div class="metric-val" style="color:#6d28d9;">${fmt(ytdRev)}</div>
         <div class="metric-sub">${ty}</div>
       </div>
       <div class="metric" style="border-top:3px solid #374151;">
-        <div style="font-size:20px;margin-bottom:4px;">🏆</div>
         <div class="metric-label">All Time</div>
         <div class="metric-val">${fmt(allTimeRev)}</div>
         <div class="metric-sub">${allTimeJobs} jobs</div>
