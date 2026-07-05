@@ -3839,7 +3839,14 @@ async function submitCustSignature(ref){
     // Save directly to Supabase
     const table=doc.ref.includes('invoice')?'invoices':'estimates';
     const hdrs={'Content-Type':'application/json','apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON,'Prefer':'resolution=merge-duplicates,return=minimal'};
-    await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:hdrs,body:JSON.stringify([{ref:doc.ref,data:doc}])});
+    const payload=JSON.stringify([{ref:doc.ref,data:doc}]);
+    let r=null;
+    try{
+      r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:hdrs,body:payload,keepalive:true});
+    }catch(e1){
+      r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:hdrs,body:payload});
+    }
+    if(!r||!r.ok){throw new Error('your acceptance could not be saved (code '+(r?r.status:'network')+')');}
     // Email notification to Iain
     const val=fmt(calcGrandTotal(doc));
     const c=S.co;
@@ -3862,7 +3869,9 @@ async function submitCustSignature(ref){
     // Notification email removed — activity feed handles this in-app
     renderCustomerView(doc);
   }catch(err){
-    alert('Error: '+err.message+'. Please try again or contact us on 0161 327 2843.');
+    var b=document.getElementById('accept-quote-btn');
+    if(b){delete b.dataset.submitting;b.disabled=false;b.style.opacity='1';b.textContent='Accept & Sign Quote';}
+    alert('Error: '+err.message+'. Please tap Accept again, or call us on 0161 327 2843.');
   }
 }
 
