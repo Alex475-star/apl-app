@@ -3967,6 +3967,21 @@ applyMobileLayout();
     document.getElementById('login-user').focus();
   }
 })();
+
+// Multi-device sync: when the app returns to the foreground (e.g. iPad
+// woken from the app switcher), pull fresh data from the backend so a
+// stale device never shows — or later re-uploads — an old snapshot.
+var _lastFgSync=0;
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState!=='visible')return;
+  if(S.custDoc)return;                 // customer quote view — not the app
+  if(S.modal||S.previewRef)return;     // don't clobber an open editor/preview
+  var app=document.getElementById('app');
+  if(!app||app.style.display==='none')return; // not logged in yet
+  if(Date.now()-_lastFgSync<5000)return;      // throttle
+  _lastFgSync=Date.now();
+  loadFromSupabase().then(function(){render();}).catch(function(){});
+});
 </script>
 </body>
 </html>
