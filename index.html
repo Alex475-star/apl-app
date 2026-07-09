@@ -662,19 +662,8 @@ async function doLogin(){
   if(authed){
     err.style.display='none';
     mfaUser=user;
-    const rememberMe=document.getElementById('remember-me')?.checked;
-    if(isTrustedDevice()){
-      completeLogin(user);
-    } else if(rememberMe){
-      // Trust this device immediately without MFA
-      trustDevice();
-      completeLogin(user);
-    } else {
-      await sendMFACode();
-      document.getElementById('login-step1').style.display='none';
-      document.getElementById('login-step2').style.display='block';
-      document.getElementById('d0').focus();
-    }
+    // Email code step removed — log straight in after username/password
+    completeLogin(user);
   } else {
     err.style.display='block';
     document.getElementById('login-pass').value='';
