@@ -1956,7 +1956,7 @@ function handlePhotos(input){
 function openNE(){
   const today=new Date().toISOString().split('T')[0];
   const exp=new Date(Date.now()+90*24*60*60*1000).toISOString().split('T')[0];
-  S.ne={ref:'aplquote'+S.nextQ,date:new Date().toISOString(),dateInput:today,expiryDate:exp,
+  S.ne={ref:'mplquote'+S.nextQ,date:new Date().toISOString(),dateInput:today,expiryDate:exp,
     clientName:'',address:'',serviceAddress:'',phone:'',mobile:'',email:'',
     lineItems:[],notes:'',privateNotes:'',photos:[],
     vat:S.co.defaultVat||false,status:'PENDING',isNew:true,
@@ -2137,7 +2137,7 @@ function convertToInv(ref){
   const e=S.estimates.find(x=>x.ref===ref);if(!e)return;
   if(!confirm('Convert estimate #'+e.ref+' to invoice?'))return;
   const inv=JSON.parse(JSON.stringify(e));
-  inv.ref='aplinvoice'+S.nextI++;inv.status='ACTIVE';inv.date=new Date().toISOString().split('T')[0];
+  inv.ref='mplinvoice'+S.nextI++;inv.status='ACTIVE';inv.date=new Date().toISOString().split('T')[0];
   delete inv.signature;delete inv.signedAt;delete inv.expiryDate;
   delete inv.emailOpened;delete inv.viewCount;delete inv.openCount;delete inv.openedAt;
   if(false){
@@ -2245,7 +2245,7 @@ async function sendReviewLink(ref){
 }
 function openNewInv(){
   const today=new Date().toISOString().split('T')[0];
-  S.ne={ref:'aplinvoice'+S.nextI,date:new Date().toISOString(),dateInput:today,
+  S.ne={ref:'mplinvoice'+S.nextI,date:new Date().toISOString(),dateInput:today,
     clientName:'',address:'',serviceAddress:'',phone:'',mobile:'',email:'',
     lineItems:[],notes:'',privateNotes:'',photos:[],
     vat:S.co.defaultVat||false,status:'ACTIVE',isNew:true,guarantee:false,
@@ -2642,12 +2642,12 @@ function duplicateDoc(ref){
   const isI=ref.includes('invoice');
   const newDoc=JSON.parse(JSON.stringify(orig));
   if(isI){
-    newDoc.ref='aplinvoice'+S.nextI++;
+    newDoc.ref='mplinvoice'+S.nextI++;
     newDoc.status='ACTIVE';
     newDoc.date=new Date().toISOString().substring(0,10);
     S.invoices.unshift(newDoc);
   } else {
-    newDoc.ref='aplquote'+S.nextQ++;
+    newDoc.ref='mplquote'+S.nextQ++;
     newDoc.status='PENDING';
     newDoc.date=new Date().toISOString();
     newDoc.dateInput=new Date().toISOString().substring(0,10);
