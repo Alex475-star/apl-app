@@ -521,7 +521,7 @@ input,textarea,select,.fi,.si,.li,.ta,.login-input,.mfa-digit{-webkit-user-selec
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Sign Out
       </div>
-      <div style="padding:8px 14px;color:rgba(255,255,255,0.25);font-size:10px;" id="sidebar-user">Iain Alexander</div>
+      <div style="padding:8px 14px;color:rgba(255,255,255,0.25);font-size:10px;" id="sidebar-user">William Alexander</div>
       <div style="padding:0 14px 10px;"><span onclick="showPrivacy()" style="color:rgba(255,255,255,0.2);font-size:10px;cursor:pointer;text-decoration:underline;">Privacy Policy</span></div>
     </div>
   </div>
@@ -747,7 +747,7 @@ function completeLogin(user){
   document.getElementById('login-step2').style.display='none';
   document.getElementById('login-pass').value='';
   loadData();
-  setTimeout(()=>{const sl=document.getElementById('sb-logo');const st=document.getElementById('sb-logo-text');const ls=(document.getElementById('apl-logo-img')||{src:''}).src;if(sl&&ls&&ls.length>100){sl.src=ls;sl.style.display='block';if(st)st.style.display='none';}},200);
+  /* sidebar shows text brand (clear on navy) */
 }
 
 function checkAuth(){
@@ -771,8 +771,7 @@ function checkAuth(){
       document.getElementById('nav-'+v)?.classList.add('active');
       document.querySelectorAll('.bni').forEach(el=>el.classList.remove('active'));
       document.getElementById('bnav-'+v)?.classList.add('active');
-      const sl=document.getElementById('sb-logo');const st=document.getElementById('sb-logo-text');const ls=(document.getElementById('apl-logo-img')||{src:''}).src;
-      if(sl&&ls&&ls.length>100){sl.src=ls;sl.style.display='block';if(st)st.style.display='none';}
+      /* sidebar shows text brand (clear on navy) */
     },100);
     return true;
   }
@@ -859,7 +858,7 @@ A 2-year workmanship guarantee applies to repointing on external elevations of r
 By accepting this quotation, the customer agrees to be bound by these Terms & Conditions in full. Written acceptance is required before works commence.
 
 For queries contact us on 0161 327 2843.`;
-const DEF_CO={loginUser:'apl',loginPass:'admin',firstName:'Iain',lastName:'Alexander',email:'info@manchesterpointing.co.uk',phone:'0161 327 2843',mobile:'07786 436 863',companyName:'Manchester Pointing Services',address:'35 Kingsbury Close, Tottington',city:'Bury',postcode:'BL8 1WA',website:'www.manchesterpointing.co.uk',companyNumber:'',vatNumber:'',bankName:'NatWest',bankAccount:'18135382',sortCode:'01-01-42',quoteExpiry:'90',defaultVat:false,
+const DEF_CO={loginUser:'apl',loginPass:'admin',firstName:'William',lastName:'Alexander',email:'info@manchesterpointing.co.uk',phone:'0161 327 2843',mobile:'07786 436 863',companyName:'Manchester Pointing Services',address:'35 Kingsbury Close, Tottington',city:'Bury',postcode:'BL8 1WA',website:'www.manchesterpointing.co.uk',companyNumber:'',vatNumber:'',bankName:'NatWest',bankAccount:'18135382',sortCode:'01-01-42',quoteExpiry:'90',defaultVat:false,
 googleReviewUrl:'https://g.page/r/YOUR-GOOGLE-REVIEW-LINK/review',
 quoteEmailSubject:'Your Quote from Manchester Pointing Services',
 quoteEmailBody:`Dear [Name],
@@ -871,7 +870,7 @@ Please note this quotation is valid for 90 days from the date of this message. S
 We look forward to hearing from you.
 
 Kind regards,
-Iain Alexander
+William Alexander
 Manchester Pointing Services
 Tel: 0161 327 2843`,
 invoiceEmailSubject:'Your Invoice from Manchester Pointing Services',
@@ -888,7 +887,7 @@ It was a pleasure working with you and we hope you're happy with the finished re
 If you have any questions at all please don't hesitate to get in touch.
 
 Kind regards,
-Iain Alexander
+William Alexander
 Manchester Pointing Services
 Tel: 0161 327 2843`,
 quoteFooter:"All works carry a 2-year workmanship guarantee on residential building elevations. Acceptance of this quotation constitutes agreement to Manchester Pointing Services' Terms & Conditions of Service.",
@@ -1071,7 +1070,7 @@ function loadData(){
     const sl=document.getElementById('sb-logo');
     const st=document.getElementById('sb-logo-text');
     const ls=(document.getElementById('apl-logo-img')||{src:''}).src;
-    if(sl&&ls&&ls.length>100){sl.src=ls;sl.style.display='block';if(st)st.style.display='none';}
+    /* sidebar shows text brand */
   },100);
   updateBadge();render();
   loadFromSupabase();
@@ -1283,7 +1282,7 @@ function rDash(m){
 
   m.innerHTML=`
   <div class="topbar">
-    <div><h1>Dashboard</h1><div style="font-size:11px;color:#888;margin-top:1px;">Good to see you, Iain</div></div>
+    <div><h1>Dashboard</h1><div style="font-size:11px;color:#888;margin-top:1px;">Good to see you, William</div></div>
     <div class="topbar-right">
       <button onclick="S.privacyMode=!S.privacyMode;rDash(document.getElementById('main-area'))"
         style="background:${pm?'#1a2332':'#f5f5f3'};color:${pm?'#4ade80':'#555'};border:1px solid ${pm?'#276749':'#ddd'};padding:6px 11px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;">
@@ -1454,7 +1453,7 @@ function rActivity(m){
 
 async function sendPaymentReminder(ref){
   const inv=S.invoices.find(i=>i.ref===ref);if(!inv)return;
-  const msg='Hi '+inv.clientName+', this is a friendly reminder that invoice #'+ref+' from Manchester Pointing Services for '+fmt(tot(inv.lineItems))+' is now overdue. Please arrange payment at your earliest convenience.\n\nBank: '+S.co.bankName+'\nAccount: '+S.co.bankAccount+'\nSort Code: '+S.co.sortCode+'\n\nKind regards,\nIain Alexander\nManchester Pointing Services\nTel: '+S.co.phone;
+  const msg='Hi '+inv.clientName+', this is a friendly reminder that invoice #'+ref+' from Manchester Pointing Services for '+fmt(tot(inv.lineItems))+' is now overdue. Please arrange payment at your earliest convenience.\n\nBank: '+S.co.bankName+'\nAccount: '+S.co.bankAccount+'\nSort Code: '+S.co.sortCode+'\n\nKind regards,\nWilliam Alexander\nManchester Pointing Services\nTel: '+S.co.phone;
   try{
     if(navigator.share){await navigator.share({title:'Payment Reminder',text:msg});}
     else{await navigator.clipboard.writeText(msg);toast('Reminder copied to clipboard');}
@@ -1543,7 +1542,7 @@ function showEstModal(){
   clearModals();
   const ne=S.ne;
   const isInv=!!(ne&&ne.ref&&ne.ref.includes('invoice'));
-  const sub=tot(ne.lineItems);const vat=ne.vat?sub*0.2:0;const total=sub+vat;
+  const sub=tot(ne.lineItems);const vat=false?sub*0.2:0;const total=sub+vat;
   const mc=S.clients.filter(c=>!S.cs||(c.name||'').toLowerCase().includes((S.cs||'').toLowerCase())).slice(0,8);
   const photos=ne.photos||[];
   const dt=S.modalTab==='details',pt=S.modalTab==='photos',prt=S.modalTab==='private';
@@ -1670,7 +1669,7 @@ function showEstModal(){
 
           <!-- VAT -->
           <div class="tl" style="align-items:center;">
-            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#555;"><input type="checkbox" ${ne.vat?'checked':''} onchange="S.ne.vat=this.checked;showEstModal()"> VAT (20%)</label>
+            
             <span>${fmt(vat)}</span>
           </div>
           ${isInv?`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
@@ -1797,13 +1796,13 @@ function calcDiscount(ne){
   return ne.discountType==='gbp'?v:(sub*v/100);
 }
 function calcDeposit(ne){
-  const grand=tot(ne.lineItems)+calcMarkup(ne)-calcDiscount(ne)+(ne.vat?(tot(ne.lineItems)+calcMarkup(ne)-calcDiscount(ne))*0.2:0);
+  const grand=tot(ne.lineItems)+calcMarkup(ne)-calcDiscount(ne)+(false?(tot(ne.lineItems)+calcMarkup(ne)-calcDiscount(ne))*0.2:0);
   const v=parseFloat(ne.depositVal)||0;
   return ne.depositType==='gbp'?v:(grand*v/100);
 }
 function calcGrandTotal(ne){
   const sub=tot(ne.lineItems)+calcMarkup(ne)-calcDiscount(ne);
-  return sub+(ne.vat?sub*0.2:0);
+  return sub+(false?sub*0.2:0);
 }
 
 // --- New Client Form ----------------------------------------------------------
@@ -2226,7 +2225,7 @@ async function markPaid(ref){
         +'<p>Thank you for your payment. This confirms we have received your payment in full.</p>'
         +'<p><strong>Invoice:</strong> '+ref+'<br><strong>Date Paid:</strong> '+paidDate+'<br><strong>Amount:</strong> '+total+'</p>'
         +'<p>Thank you for choosing Manchester Pointing Services.</p>'
-        +'<p>Kind regards,<br>Iain Alexander<br>Manchester Pointing Services<br>Tel: 0161 327 2843</p>'
+        +'<p>Kind regards,<br>William Alexander<br>Manchester Pointing Services<br>Tel: 0161 327 2843</p>'
         +'</div>';
       sendEmail(inv.email,'Payment Received — Manchester Pointing Services ('+ref+')',remitHtml);
     }
@@ -2247,7 +2246,7 @@ async function sendReviewLink(ref){
     +'<p>It was a pleasure working with you. We hope you are happy with the repointing work carried out at your property.</p>'
     +'<p>If you are happy with the service, we would really appreciate a quick Google review - it helps other customers find us:</p>'
     +'<p><a href="'+reviewUrl+'" style="color:#276749;font-weight:bold;">Click here to leave a Google review</a></p>'
-    +'<p>Thank you,<br>Iain Alexander<br>Manchester Pointing Services<br>Tel: 0161 327 2843</p>'
+    +'<p>Thank you,<br>William Alexander<br>Manchester Pointing Services<br>Tel: 0161 327 2843</p>'
     +'</div>';
   const ok=await sendEmail(inv.email,'How did we do? — Manchester Pointing Services',emailHtml);
   if(ok){
@@ -2318,8 +2317,8 @@ function rPreview(m){
   const c=S.co;
   const isI=doc.ref.includes('invoice');
   const sub=tot(doc.lineItems);
-  const vat=doc.vat?(sub+calcMarkup(doc)-calcDiscount(doc))*0.2:0;
-  const grand=isI?sub+(doc.vat?sub*0.2:0):calcGrandTotal(doc);
+  const vat=false?(sub+calcMarkup(doc)-calcDiscount(doc))*0.2:0;
+  const grand=isI?sub+(false?sub*0.2:0):calcGrandTotal(doc);
   const viewMode=S.previewMode||'desktop';
   const showQty=S.displayOpts?.qty!==false;
   const showRate=S.displayOpts?.rate!==false;
@@ -2377,7 +2376,7 @@ function rPreview(m){
 
 function renderDesktopPreview(doc,c,grand,isI,showQty,showRate,showTotal){
   const sub=tot(doc.lineItems);
-  const vat=doc.vat?sub*0.2:0;
+  const vat=false?sub*0.2:0;
   const logoSrc=(document.getElementById('apl-logo-img')||{src:''}).src;
   const label=isI?'INVOICE':'QUOTE';
   return`<div style="background:#fff;min-height:100%;padding:28px 36px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:#222;line-height:1.5;max-width:860px;">
@@ -2488,7 +2487,7 @@ function renderDesktopPreview(doc,c,grand,isI,showQty,showRate,showTotal){
 
 function renderMobilePreview(doc,c,grand,showQty,showRate,showTotal){
   const sub=tot(doc.lineItems);
-  const vat=doc.vat?sub*0.2:0;
+  const vat=false?sub*0.2:0;
   const logoSrc=(document.getElementById('apl-logo-img')||{src:''}).src;
   const isI=doc.ref.includes('invoice');
   return`<div style="background:#fff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#222;padding:0 0 20px;">
@@ -2720,39 +2719,7 @@ function rReports(m){
   }
   const maxBar=Math.max(...bars.map(b=>b.rev),1);
 
-  // VAT quarters — current year + last year
-  function getQtr(month){return Math.floor(month/3);}
-  const flatRate=S.co&&S.co.flatRatePct?S.co.flatRatePct:9.5;
-  const vatRows=[];
-  for(let y=ty-1;y<=ty;y++){
-    for(let q=0;q<=3;q++){
-      const qInvs=paidInvs.filter(i=>{const d=new Date(i.date);return d.getFullYear()===y&&getQtr(d.getMonth())===q;});
-      if(qInvs.length===0&&y<ty)continue;
-      const net=qInvs.reduce((s,i)=>s+invNet(i),0);
-      const vat=qInvs.reduce((s,i)=>s+invVat(i),0);
-      const gross=qInvs.reduce((s,i)=>s+invTotal(i),0);
-      const flatDue=gross*(flatRate/100);
-      const vatProfit=vat-flatDue;
-      const qLabel='Q'+(q+1)+' '+y;
-      const months=[mn[q*3],mn[q*3+1],mn[q*3+2]].join(', ');
-      vatRows.push({label:qLabel,months,net,vat,gross,flatDue,vatProfit,jobs:qInvs.length,isCurrent:y===ty&&getQtr(tm)===q});
-    }
-  }
-
-  // Overdue invoices
-  const overdueInvs=unpaidInvs.filter(i=>isOD(i));
-
-  // CSV export
-  function exportCSV(){
-    const rows=[['Ref','Client','Date','Net','VAT','Total','Status']];
-    paidInvs.forEach(i=>rows.push([i.ref,i.clientName,i.date,invNet(i).toFixed(2),invVat(i).toFixed(2),invTotal(i).toFixed(2),'PAID']));
-    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-    const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-    a.download='APL_invoices_'+ty+'.csv';a.click();
-  }
-  window.exportCSV=exportCSV;
-
-  m.innerHTML=`<div class="topbar"><h1>Reports</h1>
+m.innerHTML=`<div class="topbar"><h1>Reports</h1>
     <button onclick="exportCSV()" style="background:#276749;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">⬇️ Export CSV</button>
   </div>
   <div class="content">
@@ -2838,43 +2805,6 @@ function rReports(m){
       </div>
     </div>
 
-    <!-- VAT Summary -->
-    <div class="dash-card">
-      <div class="dash-card-title" style="display:flex;justify-content:space-between;align-items:center;">
-        VAT Summary — Quarterly
-        <span style="font-size:11px;color:#888;font-weight:400;">Flat Rate Scheme @ ${flatRate}%</span>
-      </div>
-      <div style="font-size:11px;color:#888;margin-bottom:12px;">Based on paid invoices. VAT collected at 20%, flat rate due at ${flatRate}% of gross.</div>
-      ${vatRows.length===0?`<div style="text-align:center;padding:20px;color:#888;font-size:13px;">No paid invoices yet</div>`:''}
-      <table style="width:100%;border-collapse:collapse;">
-        <thead>
-          <tr style="border-bottom:2px solid #e5e5e0;">
-            <th style="padding:8px 0;text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;">Quarter</th>
-            <th style="padding:8px 8px;text-align:right;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;">VAT Collected<br><span style="font-weight:400;">(charged @ 20%)</span></th>
-            <th style="padding:8px 8px;text-align:right;font-size:10px;font-weight:700;color:#c62828;text-transform:uppercase;">VAT Due HMRC<br><span style="font-weight:400;">(${flatRate}% of gross)</span></th>
-            <th style="padding:8px 0;text-align:right;font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;">VAT Profit<br><span style="font-weight:400;">(you keep)</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${vatRows.map(r=>`<tr style="border-bottom:1px solid #f0f0ed;${r.isCurrent?'background:#f0faf4;':''}">
-            <td style="padding:11px 0;">
-              <div style="font-size:13px;font-weight:${r.isCurrent?'700':'600'};color:#111;">${r.label}${r.isCurrent?' <span style="font-size:10px;background:#276749;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;">Current</span>':''}</div>
-              <div style="font-size:11px;color:#888;">${r.months} · ${r.jobs} job${r.jobs!==1?'s':''} · Gross ${fmt(r.gross)}</div>
-            </td>
-            <td style="padding:11px 8px;text-align:right;font-size:13px;color:#1565c0;font-weight:600;">${fmt(r.vat)}</td>
-            <td style="padding:11px 8px;text-align:right;font-size:13px;color:#c62828;font-weight:600;">${fmt(r.flatDue)}</td>
-            <td style="padding:11px 0;text-align:right;font-size:13px;font-weight:700;color:#276749;">${fmt(r.vatProfit)}</td>
-          </tr>`).join('')}
-        </tbody>
-        ${vatRows.length>0?`<tfoot>
-          <tr style="border-top:2px solid #111;">
-            <td style="padding:10px 0;font-size:13px;font-weight:700;">Total</td>
-            <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:#1565c0;">${fmt(vatRows.reduce((s,r)=>s+r.vat,0))}</td>
-            <td style="padding:10px 8px;text-align:right;font-size:13px;font-weight:700;color:#c62828;">${fmt(vatRows.reduce((s,r)=>s+r.flatDue,0))}</td>
-            <td style="padding:10px 0;text-align:right;font-size:13px;font-weight:700;color:#276749;">${fmt(vatRows.reduce((s,r)=>s+r.vatProfit,0))}</td>
-          </tr>
-        </tfoot>`:''}
-      </table>
     </div>
 
     </div>`;
@@ -3120,12 +3050,12 @@ function exportToExcel(){
   XLSX.utils.book_append_sheet(wb,wsSummary,'Summary');
 
   // -- Estimates sheet --
-  const estHeaders=['Ref','Client','Address','Date','Expiry','Status','Subtotal','VAT','Markup','Discount','Total','Emailed','Email Opened','Views','Signed'];
+  const estHeaders=['Ref','Client','Address','Date','Expiry','Status','Subtotal','Markup','Discount','Total','Emailed','Email Opened','Views','Signed'];
   const estRows=(S.estimates||[]).map(e=>[
     e.ref, e.clientName, e.serviceAddress||e.address||'', e.dateInput||e.date?.substring(0,10)||'',
     e.expiryDate||'', e.status||'',
     tot(e.lineItems).toFixed(2),
-    (e.vat?(tot(e.lineItems)+calcMarkup(e)-calcDiscount(e))*0.2:0).toFixed(2),
+    (false?(tot(e.lineItems)+calcMarkup(e)-calcDiscount(e))*0.2:0).toFixed(2),
     calcMarkup(e).toFixed(2), calcDiscount(e).toFixed(2),
     calcGrandTotal(e).toFixed(2),
     e.emailed?'Yes':'No', e.emailOpened?'Yes':'No',
@@ -3136,12 +3066,12 @@ function exportToExcel(){
   XLSX.utils.book_append_sheet(wb,wsEst,'Estimates');
 
   // -- Invoices sheet --
-  const invHeaders=['Ref','Client','Address','Date','Status','Subtotal','VAT','Total','Paid','Overdue'];
+  const invHeaders=['Ref','Client','Address','Date','Status','Subtotal','Total','Paid','Overdue'];
   const invRows=(S.invoices||[]).map(i=>[
     i.ref, i.clientName, i.serviceAddress||i.address||'', i.date||'',
     i.status||'', tot(i.lineItems).toFixed(2),
-    (i.vat?tot(i.lineItems)*0.2:0).toFixed(2),
-    (tot(i.lineItems)+(i.vat?tot(i.lineItems)*0.2:0)).toFixed(2),
+    (false?tot(i.lineItems)*0.2:0).toFixed(2),
+    (tot(i.lineItems)+(false?tot(i.lineItems)*0.2:0)).toFixed(2),
     i.status==='PAID'?'Yes':'No', isOD(i)?'Yes':'No'
   ]);
   const wsInv=XLSX.utils.aoa_to_sheet([invHeaders,...invRows]);
@@ -3203,7 +3133,7 @@ function clearActivity(){
 
 function rSettings(m){
   const c=S.co;
-  const tabs=[{id:'account',label:'My Account'},{id:'company',label:'My Company'},{id:'bank',label:'Bank Details'},{id:'taxes',label:'Taxes & VAT'},{id:'docs',label:'Doc Settings'},{id:'branding',label:'Signature & Logos'},{id:'security',label:'Security'}];
+  const tabs=[{id:'account',label:'My Account'},{id:'company',label:'My Company'},{id:'bank',label:'Bank Details'},{id:'docs',label:'Doc Settings'},{id:'branding',label:'Signature & Logos'},{id:'security',label:'Security'}];
   if(S.settab==='security'){
     const tabNav=tabs.map(t=>'<div class="sni '+(S.settab===t.id?'active':'')+'" onclick="S.settab=\''+t.id+'\';rSettings(document.getElementById(\'main-area\'))">'+t.label+'</div>').join('');
     m.innerHTML='<div class="topbar"><h1>Settings</h1><div style="display:flex;gap:8px;"><button class="bs" onclick="nav(\'dashboard\')">Cancel</button><button class="bg" onclick="saveSettings()">Save</button></div></div>'
@@ -3237,7 +3167,7 @@ function rSettings(m){
           <button class="bg" onclick="document.getElementById('sig-upload').click()" style="font-size:13px;">📷 Upload Signature Image</button>
           <input type="file" id="sig-upload" accept="image/*" style="display:none;" onchange="uploadSignature(this)">
           <div class="tc" style="margin-top:12px;">
-            <div class="fl"><label>Signatory Name</label><input class="fi" id="s-signame" value="${c.signatoryName||c.firstName+' '+c.lastName}" placeholder="Iain Alexander" autocapitalize="words"></div>
+            <div class="fl"><label>Signatory Name</label><input class="fi" id="s-signame" value="${c.signatoryName||c.firstName+' '+c.lastName}" placeholder="William Alexander" autocapitalize="words"></div>
             <div class="fl"><label>Title</label><input class="fi" id="s-sigtitle" value="${c.signatoryTitle||'Company Director'}" placeholder="Company Director"></div>
           </div>
         </div>
@@ -3387,7 +3317,7 @@ function buildDesktopHtml(doc){
   var sub=tot(doc.lineItems);
   var markup=calcMarkup(doc);
   var discount=calcDiscount(doc);
-  var vat=doc.vat?(sub+markup-discount)*0.2:0;
+  var vat=false?(sub+markup-discount)*0.2:0;
   var grand=calcGrandTotal(doc);
   var deposit=calcDeposit(doc);
   var bankItem=(doc.lineItems||[]).find(function(li){return(li.name||'').toLowerCase().includes('bank detail');});
@@ -3520,7 +3450,7 @@ function renderCustomerView(doc){
   const sub=tot(doc.lineItems);
   const markup=calcMarkup(doc);
   const discount=calcDiscount(doc);
-  const vat=doc.vat?(sub+markup-discount)*0.2:0;
+  const vat=false?(sub+markup-discount)*0.2:0;
   const grand=calcGrandTotal(doc);
   const deposit=calcDeposit(doc);
   const expired=doc.expiryDate&&new Date(doc.expiryDate)<new Date()&&!isInv;
@@ -3847,7 +3777,7 @@ async function submitCustSignature(ref){
       r=await fetch(SUPA_URL+'/rest/v1/'+table,{method:'POST',headers:hdrs,body:payload});
     }
     if(!r||!r.ok){throw new Error('your acceptance could not be saved (code '+(r?r.status:'network')+')');}
-    // Email notification to Iain
+    // Email notification to William
     const val=fmt(calcGrandTotal(doc));
     const c=S.co;
     const signedDate=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
