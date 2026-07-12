@@ -1509,6 +1509,7 @@ function rEst(m){
               <div class="list-name">${e.clientName}</div>
               <div style="display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;">
                 <span class="list-sub" style="margin:0;">${fdShort(e.date)} · #${e.ref}</span>
+                ${e.fromWebsite?`<span style="font-size:10px;font-weight:700;color:#fff;background:#c1572f;padding:2px 7px;border-radius:3px;">📩 WEBSITE ENQUIRY</span>`:''}
                 ${vs?`<span style="font-size:10px;font-weight:600;color:${vs.col};background:${vs.bg};padding:1px 6px;border-radius:3px;" title="${vs.tip}">${vs.label}</span>`:''}
               </div>
             </div>
@@ -1971,7 +1972,10 @@ function editE(ref){
   const e=S.estimates.find(x=>x.ref===ref);if(!e)return;
   S.ne=JSON.parse(JSON.stringify(e));S.ne.isNew=false;
   if(!S.ne.photos)S.ne.photos=[];
-  S.picker=false;S.showCS=false;S.modalTab='details';
+  S.picker=false;S.showCS=false;
+  // Website enquiries: open straight on Private Notes so the customer's
+  // answers are the first thing seen, not the empty Line Items tab.
+  S.modalTab=S.ne.fromWebsite?'private':'details';
   S.previewRef=null;
   render();
   showEstModal();
